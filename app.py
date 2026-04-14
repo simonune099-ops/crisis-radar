@@ -394,8 +394,10 @@ elif page == "📊 Results & Charts":
                 x=price_df["Date"], y=price_df["Close"],
                 mode="lines", line=dict(color="#1565C0", width=2), name="Close"
             ))
+            # Pass datetime object (not string) — Plotly needs numeric-compatible type
+            # 中文: 必须传 datetime 对象，字符串会导致 int+str 类型错误
             fig2.add_vline(
-                x=filed_date, line_dash="dash", line_color=color, line_width=2.5,
+                x=filing_dt, line_dash="dash", line_color=color, line_width=2.5,
                 annotation_text=f" {form_code} filed  [{rating}]",
                 annotation_font=dict(color=color, size=11),
             )
