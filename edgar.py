@@ -112,6 +112,37 @@ def get_filing_text(cik: str, accession: str, max_chars: int = 100_000) -> str:
     return text[:max_chars]
 
 
+def get_8k_filings(cik: str, count: int = 5) -> pd.DataFrame:
+    """
+    Fetch recent 8-K filings (current event reports / press releases) for a company.
+    8-K is the closest free substitute for Access Newswire press releases —
+    companies file 8-K for earnings announcements, M&A, leadership changes, etc.
+
+    Returns a DataFrame with: form, filed_date, accession, description
+    中文: 抓取近期 8-K 文件（相当于免费版新闻稿）
+    8-K 是公司重大事件的即时披露，包括财报、并购、高管变动等
+    可作为 Access Newswire / Meltwater 的 SEC 内置替代数据源
+    """
+    url = f"https://data.sec.gov/submissions/CIK{cik}.json"
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=15)
+        r.raise_for_status()
+        f = r.json()["filings"]["recent"]
+        df = pd.DataFrame({
+            "form":        f["form"],
+            "filed_date":  f["filingDate"],
+            "accession":   f["accessionNumber"],
+            "description": f.get("primaryDocument", [""] * len(f["form"])),
+        })
+        # Include 8-K and 8-K/A (amended)
+        # 中文: 包含 8-K 和 8-K/A（修正版）
+        mask = df["form"].isin(["8-K", "8-K/A"])
+        return df[mask].head(count).reset_index(drop=True)
+    except Exception as e:
+        print(f"[edgar] 8-K fetch failed: {e}")
+        return pd.DataFrame(columns=["form", "filed_date", "accession", "description"])
+
+
 def get_sp500_tickers() -> pd.DataFrame:
     """
     Fetch the current S&P 500 constituent list from Wikipedia.
