@@ -12,7 +12,8 @@ from datetime import datetime, timedelta
 import edgar
 import scorer
 import models
-import newswire
+# newswire import removed — Access Newswire API not available
+# Replaced by: (1) SEC 8-K filings as free PR proxy, (2) Meltwater CSV upload
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -49,12 +50,12 @@ with st.sidebar:
     st.caption("**Module Status**")
     lm_ready  = st.session_state.word_sets    is not None
     ml_ready  = st.session_state.crisis_model is not None
-    nw_ready  = st.session_state.get("nw_connected", False)
+    mt_ready  = st.session_state.get("meltwater_df") is not None
 
     st.markdown(
         f"{'✅' if lm_ready  else '⬜'} LM Dictionary\n\n"
         f"{'✅' if ml_ready  else '⬜'} Logit Model\n\n"
-        f"{'✅' if nw_ready  else '⬜'} Access Newswire"
+        f"{'✅' if mt_ready  else '⬜'} Meltwater Coverage"
     )
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -74,10 +75,10 @@ if page == "🏠 Home":
     with col1:
         st.markdown("### 📥 Data Sources")
         st.markdown(
-            "- **SEC EDGAR** — live 10-K / 10-Q text\n"
-            "- **Yahoo Finance** — stock price overlay\n"
+            "- **SEC EDGAR** — live 10-K / 10-Q + 8-K filings\n"
+            "- **Yahoo Finance** — Event Study (CAR vs SPY)\n"
             "- **WRDS Compustat** — Logit model training\n"
-            "- **Access Newswire** — PR tone comparison"
+            "- **Meltwater CSV** — Media coverage analysis"
         )
     with col2:
         st.markdown("### 🤖 Models")
@@ -98,7 +99,7 @@ if page == "🏠 Home":
     st.divider()
     st.info(
         "💡 **Start here →** Click **Settings** in the left panel to load the "
-        "LM Dictionary and connect WRDS / Access Newswire."
+        "LM Dictionary, connect WRDS, and optionally upload Meltwater media coverage."
     )
 
     # LP/GP context note
@@ -161,21 +162,103 @@ elif page == "🔐 Settings":
 
     st.divider()
 
-    # ── Access Newswire ──
-    st.subheader("📰 Access Newswire (PR Comparison)")
-    nw_key = st.text_input("API key", type="password", placeholder="your_api_key_here")
-    if st.button("Connect Newswire"):
-        with st.spinner("Testing connection..."):
-            ok = newswire.test_connection(nw_key)
-        if ok:
-            st.session_state["nw_key"]       = nw_key
-            st.session_state["nw_connected"] = True
-            st.success("✅ Access Newswire connected.")
-        else:
-            st.error("❌ Connection failed. Check your API key.")
+    # ── Meltwater CSV Upload ─────────────────────────────────────────────────
+    # Meltwater doesn't offer API access at all tiers, but allows manual CSV export.
+    # Workflow: Meltwater → Search/Monitor → Export → Upload here.
+    # 中文: Meltwater 不开放 API，但支持手动导出 CSV。在 Meltwater 网页端搜索后导出，上传到这里。
+    st.subheader("📊 Meltwater — Media Coverage Analysis")
+
+    with st.expander("ℹ️ How to export from Meltwater", expanded=False):
+        st.markdown(
+            "**Step-by-step export from your Meltwater account:**\n\n"
+            "1. Log into [meltwater.com](https://www.meltwater.com) with your account\n"
+            "2. Go to **Media Monitoring** → search for the company ticker or name\n"
+            "3. Set the date range to match ±90 days around the filing date\n"
+            "4. Click **Export** (top-right) → select **CSV** or **Excel**\n"
+            "5. Upload the downloaded file below\n\n"
+            "**Expected columns** (Meltwater standard export):\n"
+            "`Date` / `Published`, `Title` / `Headline`, `Source`, "
+            "`Sentiment`, `Reach` / `Audience`, `Country`, `Snippet` / `Summary`\n\n"
+            "The parser handles different column name variations automatically."
+        )
+
+    mt_file = st.file_uploader(
+        "Upload Meltwater export (.csv or .xlsx)",
+        type=["csv", "xlsx", "xls"],
+        help="Export from Meltwater: Media Monitoring → Export → CSV",
+    )
+
+    if mt_file is not None:
+        try:
+            # Parse uploaded file — handle both CSV and Excel
+            # 中文: 自动处理 CSV 和 Excel 两种格式
+            if mt_file.name.endswith((".xlsx", ".xls")):
+                mt_df = pd.read_excel(mt_file)
+            else:
+                mt_df = pd.read_csv(mt_file, encoding="utf-8", errors="replace")
+
+            # Normalize column names — Meltwater uses different names by region/version
+            # 中文: 统一列名（Meltwater 不同版本列名不同）
+            col_map = {}
+            for col in mt_df.columns:
+                c_lower = col.lower().strip()
+                if c_lower in ("date", "published", "publication date", "publish date", "hit date"):
+                    col_map[col] = "date"
+                elif c_lower in ("title", "headline", "article title", "hit title"):
+                    col_map[col] = "title"
+                elif c_lower in ("source", "media", "outlet", "media outlet", "source name"):
+                    col_map[col] = "source"
+                elif c_lower in ("sentiment", "sentiment score", "tone"):
+                    col_map[col] = "sentiment"
+                elif c_lower in ("reach", "audience", "estimated reach", "readership"):
+                    col_map[col] = "reach"
+                elif c_lower in ("country", "region", "geography"):
+                    col_map[col] = "country"
+                elif c_lower in ("snippet", "summary", "content", "excerpt", "body"):
+                    col_map[col] = "snippet"
+                elif c_lower in ("url", "link", "article url"):
+                    col_map[col] = "url"
+
+            mt_df = mt_df.rename(columns=col_map)
+
+            # Parse date
+            if "date" in mt_df.columns:
+                mt_df["date"] = pd.to_datetime(mt_df["date"], errors="coerce")
+
+            # Parse reach as numeric
+            if "reach" in mt_df.columns:
+                mt_df["reach"] = pd.to_numeric(
+                    mt_df["reach"].astype(str).str.replace(",", "").str.replace(" ", ""),
+                    errors="coerce"
+                )
+
+            st.session_state["meltwater_df"] = mt_df
+            found_cols = [c for c in ["date","title","source","sentiment","reach","snippet"]
+                          if c in mt_df.columns]
+
+            st.success(
+                f"✅ Meltwater data loaded: **{len(mt_df):,} articles** | "
+                f"Columns detected: {', '.join(found_cols)}"
+            )
+
+            # Quick preview
+            preview_cols = [c for c in ["date","title","source","sentiment","reach"]
+                            if c in mt_df.columns]
+            st.dataframe(mt_df[preview_cols].head(5), use_container_width=True)
+
+        except Exception as e:
+            st.error(f"Failed to parse file: {e}")
+            st.caption("Try re-exporting from Meltwater as UTF-8 CSV.")
+
+    elif st.session_state.get("meltwater_df") is not None:
+        existing = st.session_state["meltwater_df"]
+        st.info(f"✅ Meltwater data already loaded: {len(existing):,} articles")
+        if st.button("Clear Meltwater data"):
+            st.session_state["meltwater_df"] = None
+            st.rerun()
 
     st.divider()
-    st.info("Once all modules are loaded, go to **Analyze Company** in the sidebar.")
+    st.info("Once modules are loaded, go to **Analyze Company** in the sidebar.")
 
 # ════════════════════════════════════════════════════════════════════════════
 # PAGE: ANALYZE COMPANY
@@ -235,17 +318,59 @@ elif page == "🔍 Analyze Company":
         if st.session_state.crisis_model:
             crisis_prob = st.session_state.crisis_model.predict_from_scores(scores)
 
-        # Step 7 — Newswire comparison
-        pr_div = None
-        if st.session_state.get("nw_connected"):
-            pr_df = newswire.fetch_releases(
-                ticker, latest["filed_date"], st.session_state["nw_key"]
-            )
-            if not pr_df.empty:
-                pr_text   = " ".join(pr_df["content"].fillna("").tolist())
-                pr_scores = scorer.score_text(pr_text, st.session_state.word_sets)
-                divergence = newswire.compute_divergence(scores, pr_scores)
-                pr_div     = divergence.get("total")
+        # Step 7 — Meltwater media coverage analysis (if CSV uploaded)
+        # 中文: 如果已上传 Meltwater CSV，计算媒体情绪与 SEC 文件的对比
+        pr_div      = None
+        mt_analysis = None
+        mt_df       = st.session_state.get("meltwater_df")
+
+        if mt_df is not None and "date" in mt_df.columns:
+            try:
+                filing_dt_mt = pd.to_datetime(latest["filed_date"])
+                # Filter to ±90 days around filing date
+                window = mt_df[
+                    (mt_df["date"] >= filing_dt_mt - pd.Timedelta(days=90)) &
+                    (mt_df["date"] <= filing_dt_mt + pd.Timedelta(days=90))
+                ].copy()
+
+                if len(window) > 0:
+                    # Sentiment distribution from Meltwater's own column
+                    if "sentiment" in window.columns:
+                        sent_counts = window["sentiment"].str.lower().value_counts()
+                        pos_count = sent_counts.get("positive", 0)
+                        neg_count = sent_counts.get("negative", 0)
+                        neu_count = sent_counts.get("neutral", 0)
+                        total_mt  = len(window)
+                        mt_neg_pct = neg_count / total_mt * 100 if total_mt else 0
+
+                        # Divergence: compare SEC filing negative% with media negativity%
+                        sec_neg_pct = scores.get("negative_pct", 0) * 0.1  # scale to 0-100
+                        pr_div = abs(sec_neg_pct - mt_neg_pct)
+                    else:
+                        neg_count = neu_count = pos_count = 0
+                        mt_neg_pct = 0
+
+                    # Top sources by reach
+                    if "reach" in window.columns:
+                        top_sources = (window.groupby("source")["reach"].sum()
+                                       .sort_values(ascending=False).head(5)
+                                       if "source" in window.columns else pd.Series())
+                    else:
+                        top_sources = (window["source"].value_counts().head(5)
+                                       if "source" in window.columns else pd.Series())
+
+                    mt_analysis = {
+                        "total_articles":  len(window),
+                        "positive_count":  int(pos_count),
+                        "neutral_count":   int(neu_count),
+                        "negative_count":  int(neg_count),
+                        "mt_neg_pct":      round(mt_neg_pct, 1),
+                        "top_sources":     top_sources,
+                        "window_df":       window,
+                        "filing_date":     filing_dt_mt,
+                    }
+            except Exception:
+                pass
 
         guidance = scorer.get_scct_guidance(scores, pr_div)
 
@@ -304,6 +429,7 @@ elif page == "🔍 Analyze Company":
             "eightk_filings": eightk_filings,
             "eightk_scores":  eightk_scores,
             "eightk_div":     eightk_div,
+            "mt_analysis":    mt_analysis,
         }
 
         st.success(
@@ -333,6 +459,7 @@ elif page == "📊 Results & Charts":
     crisis_prob = r["crisis_prob"]
     pr_div      = r["pr_div"]
     guidance    = r["guidance"]
+    mt_analysis = r.get("mt_analysis")
 
     # ── Top KPI row ──────────────────────────────────────────────────────────
     c1, c2, c3, c4 = st.columns([1.2, 1, 1, 1])
@@ -366,13 +493,22 @@ elif page == "📊 Results & Charts":
         )
 
     with c4:
-        div_str = f"{pr_div:.2f}" if pr_div is not None else "N/A"
-        st.metric(
-            "PR Divergence",
-            div_str,
-            help="Tone gap between SEC filing and press releases (>4.0 = significant)",
-            # 中文: SEC 文件与新闻稿的语气差距（>4.0 视为显著不一致）
-        )
+        if mt_analysis:
+            neg_pct = mt_analysis["mt_neg_pct"]
+            st.metric(
+                "Media Neg. Coverage",
+                f"{neg_pct:.1f}%",
+                delta=f"{mt_analysis['total_articles']} articles",
+                help="% negative articles in Meltwater coverage ±90 days around filing",
+                # 中文: Meltwater 媒体报道中负面文章占比（文件日期前后 90 天）
+            )
+        else:
+            div_str = f"{pr_div:.2f}" if pr_div is not None else "Upload Meltwater CSV"
+            st.metric(
+                "Media Divergence",
+                div_str,
+                help="Upload Meltwater CSV in Settings to enable media analysis",
+            )
 
     st.divider()
 
@@ -760,6 +896,117 @@ elif page == "📊 Results & Charts":
                              use_container_width=True)
 
     st.divider()
+
+    # ── Meltwater Media Coverage Analysis ────────────────────────────────────
+    if mt_analysis:
+        st.divider()
+        st.subheader("📡 Meltwater — Media Coverage Analysis")
+        st.caption(
+            f"±90 days around {form_code} filing ({filed_date}) — "
+            f"{mt_analysis['total_articles']} articles analysed"
+        )
+        # 中文: Meltwater 媒体报道分析（文件日期前后 90 天）
+
+        # Sentiment breakdown
+        mt_c1, mt_c2, mt_c3, mt_c4 = st.columns(4)
+        mt_c1.metric("Total Articles",  mt_analysis["total_articles"])
+        mt_c2.metric("Positive",  mt_analysis["positive_count"],
+                     delta=f"{mt_analysis['positive_count']/mt_analysis['total_articles']*100:.0f}%")
+        mt_c3.metric("Neutral",   mt_analysis["neutral_count"])
+        mt_c4.metric("Negative",  mt_analysis["negative_count"],
+                     delta=f"-{mt_analysis['mt_neg_pct']:.1f}%", delta_color="inverse")
+
+        mt_left, mt_right = st.columns(2)
+
+        # Sentiment pie chart
+        with mt_left:
+            if mt_analysis["positive_count"] + mt_analysis["negative_count"] + mt_analysis["neutral_count"] > 0:
+                fig_pie = go.Figure(go.Pie(
+                    labels=["Positive", "Neutral", "Negative"],
+                    values=[mt_analysis["positive_count"],
+                            mt_analysis["neutral_count"],
+                            mt_analysis["negative_count"]],
+                    marker_colors=["#2E7D32", "#9E9E9E", "#B71C1C"],
+                    hole=0.45,
+                    textinfo="label+percent",
+                ))
+                fig_pie.update_layout(
+                    height=280, showlegend=False,
+                    margin=dict(l=10, r=10, t=10, b=10),
+                    title_text="Media Sentiment Mix",
+                )
+                st.plotly_chart(fig_pie, use_container_width=True)
+
+        # Coverage timeline (articles per week)
+        with mt_right:
+            wdf = mt_analysis["window_df"].copy()
+            if "date" in wdf.columns and len(wdf) > 0:
+                wdf["week"] = wdf["date"].dt.to_period("W").apply(lambda p: p.start_time)
+                weekly = wdf.groupby("week").size().reset_index(name="count")
+                if "sentiment" in wdf.columns:
+                    neg_weekly = (wdf[wdf["sentiment"].str.lower() == "negative"]
+                                  .groupby("week").size().reset_index(name="neg_count"))
+                    weekly = weekly.merge(neg_weekly, on="week", how="left").fillna(0)
+
+                fig_timeline = go.Figure()
+                fig_timeline.add_trace(go.Bar(
+                    x=weekly["week"], y=weekly["count"],
+                    name="All articles", marker_color="#90CAF9",
+                ))
+                if "neg_count" in weekly.columns:
+                    fig_timeline.add_trace(go.Bar(
+                        x=weekly["week"], y=weekly["neg_count"],
+                        name="Negative", marker_color="#EF9A9A",
+                    ))
+                # Filing date line
+                fig_timeline.add_shape(
+                    type="line", x0=filed_date, x1=filed_date,
+                    y0=0, y1=1, yref="paper",
+                    line=dict(color=color, width=2, dash="dash"),
+                )
+                fig_timeline.add_annotation(
+                    x=filed_date, y=1.05, yref="paper",
+                    text=f"{form_code} filed", showarrow=False,
+                    font=dict(color=color, size=10),
+                )
+                fig_timeline.update_layout(
+                    height=280, barmode="overlay",
+                    xaxis_title="Week", yaxis_title="Articles",
+                    plot_bgcolor="#FAFAFA",
+                    margin=dict(l=10, r=10, t=10, b=40),
+                    legend=dict(orientation="h", y=-0.25),
+                    title_text="Coverage Volume Timeline",
+                )
+                st.plotly_chart(fig_timeline, use_container_width=True)
+
+        # Top sources table
+        top_src = mt_analysis.get("top_sources")
+        if top_src is not None and len(top_src) > 0:
+            with st.expander("📰 Top Media Sources by Reach"):
+                src_df = top_src.reset_index()
+                src_df.columns = ["Source", "Reach / Article Count"]
+                st.dataframe(src_df, use_container_width=True)
+
+        # SEC vs Media divergence warning
+        if pr_div is not None and pr_div > 10:
+            st.warning(
+                f"⚠️ **Media-SEC divergence detected** (score: {pr_div:.1f}). "
+                f"Media coverage is significantly more negative than the SEC filing language. "
+                f"This gap is a PR risk signal — investors who read media before filings "
+                f"may form a more negative view than the filing alone warrants. "
+                f"Consider proactive IR communications to bridge the narrative gap."
+            )
+        elif pr_div is not None:
+            st.success(
+                f"✅ Media tone is broadly consistent with SEC filing language "
+                f"(divergence score: {pr_div:.1f}). No significant narrative gap detected."
+            )
+
+        # Raw data table
+        with st.expander("📋 Raw Meltwater Data (filtered window)"):
+            display_cols = [c for c in ["date", "title", "source", "sentiment", "reach", "url"]
+                            if c in mt_analysis["window_df"].columns]
+            st.dataframe(mt_analysis["window_df"][display_cols], use_container_width=True)
 
     # ── Historical filings table ─────────────────────────────────────────────
     with st.expander("📁 Historical Filing List"):
