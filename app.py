@@ -870,7 +870,7 @@ elif page == "📊 Results & Charts":
 
     # ── Risk Map ─────────────────────────────────────────────────────────────
     st.subheader("🗺️ Crisis Risk Map")
-    st.caption("Severity × Likelihood — inspired by AC820 Risk Map framework")
+    st.caption("Severity × Likelihood — Risk Assessment Matrix (Crandall, Parnell & Spillan, 2013)")
     # 中文: 危机风险地图（严重程度 × 发生可能性），来自 Week 1-2 课件 Risk Map
 
     rmap_col, rmap_info = st.columns([2, 1])
@@ -936,7 +936,7 @@ elif page == "📊 Results & Charts":
         st.caption(
             "Likelihood: Uncertainty + Weak Modal language signals\n\n"
             "Severity: Negative + Litigious language signals (weighted)\n\n"
-            "Source: AC820 Week 1-2 Risk Map framework"
+            "Source: Crandall, Parnell & Spillan (2013), Crisis Management. SAGE."
         )
 
     st.divider()
@@ -992,7 +992,7 @@ elif page == "📊 Results & Charts":
         # Victim Recovery Cycle
         vr = guidance.get("victim_recovery", {})
         if vr:
-            with st.expander("🫂 Victim Recovery Cycle Guidance (Coombs / AC820 Week 1)"):
+            with st.expander("🫂 Victim Recovery Cycle Guidance (Coombs, 2007)"):
                 st.markdown("**Stage 1 — Feelings (Emotions & Trauma)**")
                 st.markdown(f"> {vr.get('stage_1_feelings', '')}")
                 st.markdown("**Stage 2 — Seeking Retribution (Accountability)**")
@@ -1178,8 +1178,8 @@ elif page == "📋 Crisis Playbook":
     st.title("📋 Crisis Playbook")
     st.markdown(
         "Integrated crisis management action plan based on your filing analysis. "
-        "Grounded in AC820 frameworks: Crisis Lifecycle, Lerbinger Types, "
-        "SCCT, Issues Management Process, and Proactive Approach."
+        "Grounded in Crandall et al. (2013), Lerbinger (1997), Coombs (2007), "
+        "Fernandez (2017), and Mitroff (2005)."
     )
     # 中文: 基于文件分析生成的完整危机应对手册，整合 AC820 所有核心框架
 
@@ -1223,7 +1223,7 @@ elif page == "📋 Crisis Playbook":
 
     # ── Section 1: Crisis Lifecycle Stage ───────────────────────────────────
     st.subheader("1️⃣ Crisis Lifecycle Position")
-    st.caption("Source: Crandall (2013) + AC820 Week 1 & Week 6 — Before / During / After")
+    st.caption("Source: Crandall, Parnell & Spillan (2013) — Before / During / After crisis lifecycle")
     # 中文: 危机生命周期定位（Week 1+6）
 
     lc_col1, lc_col2 = st.columns([1, 2])
@@ -1249,7 +1249,7 @@ elif page == "📋 Crisis Playbook":
             "**Lifecycle stages:** Preconditions → Trigger Event → Active Crisis → Post-Crisis. "
             "The key insight: crises rarely arrive suddenly — "
             "warning signs are missed due to optimism bias, denial, or overconfidence. "
-            "(AC820 Week 3: Why we miss warning signs)"
+            "(Mitroff, 2005 — why organizations miss early warning signals)"
         )
 
     st.divider()
@@ -1257,7 +1257,7 @@ elif page == "📋 Crisis Playbook":
     # ── Section 2: Issues Management Triage ─────────────────────────────────
     st.subheader("2️⃣ Issues Management Triage")
     st.caption(
-        "Source: Crisis Ready® Flowchart + AC820 Week 1 Issues Management Process\n"
+        "Source: Fernandez (2017), Crisis Ready® — Issues Management Spectrum\n"
         "Spectrum: Business as Usual → Issues Management → Crisis Management"
     )
     # 中文: Issues Management 分级（Crisis Ready 决策树 + Week 1）
@@ -1293,7 +1293,7 @@ elif page == "📋 Crisis Playbook":
         else:
             st.success(triage.get("response_guidance", ""))
 
-        st.markdown("**Issues Management Process (AC820 Week 1):**")
+        st.markdown("**Issues Management Process (Crandall et al., 2013):**")
         st.markdown(
             "> **Identify → Listen → Investigate → React → Respond → Communicate → Debrief**\n\n"
             "Each step must be documented. Write down everything: "
@@ -1305,7 +1305,7 @@ elif page == "📋 Crisis Playbook":
 
     # ── Section 3: Lerbinger Root Cause ─────────────────────────────────────
     st.subheader("3️⃣ Crisis Root Cause — Lerbinger Classification")
-    st.caption("Source: Lerbinger (1997) + AC820 Week 2 Vulnerability Framework")
+    st.caption("Source: Lerbinger (1997), The Crisis Manager. Lawrence Erlbaum Associates.")
     # 中文: Lerbinger 危机类型与根源漏洞（Week 2）
 
     if lerbinger_type:
@@ -1332,7 +1332,7 @@ elif page == "📋 Crisis Playbook":
                 unsafe_allow_html=True,
             )
         with lb_col2:
-            st.markdown("**Exacerbating Factors (AC820 Week 2):**")
+            st.markdown("**Exacerbating Factors (Lerbinger, 1997):**")
             for factor in lerbinger_type.get("exacerbating_factors", []):
                 st.markdown(f"⚡ {factor}")
             if lerbinger_type.get("secondary_type"):
@@ -1345,12 +1345,12 @@ elif page == "📋 Crisis Playbook":
 
     # ── Section 4: CMT Activation Checklist ─────────────────────────────────
     st.subheader("4️⃣ Crisis Management Team (CMT) — Activation Checklist")
-    st.caption("Source: AC820 Week 3 — CMT as the 'nerve center' of crisis response")
+    st.caption("Source: Coombs (2007), Ongoing Crisis Communication. SAGE Publications.")
     # 中文: CMT 启动清单（Week 3）
 
     cmt_col1, cmt_col2 = st.columns(2)
     with cmt_col1:
-        st.markdown("**Core CMT Composition (per AC820 Week 3):**")
+        st.markdown("**Core CMT Composition (Coombs, 2007; Mitroff, 2005):**")
         cmt_roles = [
             ("👔", "CEO / COO", "Decision authority, public face"),
             ("📣", "PR / Communications Lead", "Message strategy, media relations"),
@@ -1382,9 +1382,9 @@ elif page == "📋 Crisis Playbook":
     # ── Section 5: Proactive Action Checklist ───────────────────────────────
     st.subheader("5️⃣ Prioritized Action Checklist")
     st.caption(
-        "Source: AC820 Week 3 Proactive Approach — "
-        "Vulnerability Audit, Process Improvement, Stealing Thunder, "
-        "Leaders Ready, Monitor Radar Screen"
+        "Source: Mitroff (2005); Arpan & Roskos-Ewoldsen (2005) — "
+        "Proactive Crisis Preparedness: Vulnerability Audit, Stealing Thunder, "
+        "CMT Readiness, External Scanning"
     )
     # 中文: 主动预防行动清单，按优先级排序（Week 3）
 
@@ -1411,7 +1411,7 @@ elif page == "📋 Crisis Playbook":
 
     # ── Section 6: Good Ongoing PR Principles ───────────────────────────────
     st.subheader("6️⃣ Foundational PR Principles — Your Crisis Insurance")
-    st.caption("Source: PR Page Principle + AC820 Week 1 'Best crisis management = prevention'")
+    st.caption("Source: Arthur W. Page Society — Page Principles; Mitroff (2005), Why Some Companies Emerge Stronger from a Crisis")
     # 中文: PR 基本原则（Week 1 — 好的 PR 就是最好的危机保险）
 
     pr_col1, pr_col2 = st.columns(2)
@@ -1428,7 +1428,7 @@ elif page == "📋 Crisis Playbook":
             st.markdown(f"✅ {p}")
 
     with pr_col2:
-        st.markdown("**Crisis Culture Checklist (AC820 Week 4):**")
+        st.markdown("**Crisis Culture Checklist (Mitroff, 2005):**")
         culture_items = [
             "Leadership willing to recognize risks (no optimism bias)",
             "Board actively involved in crisis preparedness",
@@ -1442,7 +1442,7 @@ elif page == "📋 Crisis Playbook":
 
     st.caption(
         "**Remember:** Crisis failure is usually a culture and governance problem, "
-        "not a capability problem. (AC820 Week 1)"
+        "not a capability problem. (Mitroff, 2005)"
     )
 
 # ════════════════════════════════════════════════════════════════════════════

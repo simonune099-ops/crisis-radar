@@ -719,7 +719,7 @@ def get_proactive_checklist(scores: dict, rating: str) -> list[dict]:
             "Ask: 'Where are we most vulnerable? Are we self-creating our own crises?'"
         ),
         "timing": "Before next board meeting",
-        "framework": "Vulnerability Audit (AC820 Week 3)",
+        "framework": "Vulnerability Audit (Mitroff, 2005)",
     })
 
     # ── 3. Litigation / Legal exposure ──────────────────────────────────────
@@ -765,7 +765,7 @@ def get_proactive_checklist(scores: dict, rating: str) -> list[dict]:
                 "The CMT is the 'nerve center' — activate before media forces your hand."
             ),
             "timing": "Today",
-            "framework": "Crisis Management Team (AC820 Week 3)",
+            "framework": "Crisis Management Team (Coombs, 2007)",
         })
     else:
         checklist.append({
@@ -774,10 +774,10 @@ def get_proactive_checklist(scores: dict, rating: str) -> list[dict]:
             "rationale": (
                 "Review CMT membership, contact lists, and response plans annually. "
                 "Conduct a tabletop simulation — 'Why the best plans fail: "
-                "no one has practiced them.' (AC820 Week 4)"
+                "no one has practiced them.' (Mitroff, 2005)"
             ),
             "timing": "Annual review",
-            "framework": "CMT Planning (AC820 Week 3)",
+            "framework": "CMT Planning (Coombs, 2007)",
         })
 
     # ── 6. External Scanning (Meltwater logic — replicated without API) ──────
@@ -792,7 +792,7 @@ def get_proactive_checklist(scores: dict, rating: str) -> list[dict]:
             "are the most common crisis triggers for public companies."
         ),
         "timing": "Weekly",
-        "framework": "External Scanning (AC820 Week 2 — Meltwater logic)",
+        "framework": "External Scanning (Crandall et al., 2013 — PEST Framework)",
     })
 
     # ── 7. Leaders Ready ─────────────────────────────────────────────────────
@@ -806,7 +806,7 @@ def get_proactive_checklist(scores: dict, rating: str) -> list[dict]:
             "(3) Designated spokesperson is trained and media-ready."
         ),
         "timing": "Next board meeting",
-        "framework": "Leadership in Crisis Planning (AC820 Week 3)",
+        "framework": "Leadership in Crisis Planning (Mitroff, 2005)",
     })
 
     # ── 8. Process Improvement (if constraining signals) ────────────────────
@@ -822,7 +822,7 @@ def get_proactive_checklist(scores: dict, rating: str) -> list[dict]:
                 "is far more credible than remediation announced reactively."
             ),
             "timing": "Q-over-Q review",
-            "framework": "Process Improvement (AC820 Week 3 Proactive Approach)",
+            "framework": "Process Improvement (Coombs, 2007 — Proactive Approach)",
         })
 
     # ── 9. Good Ongoing PR (always) ─────────────────────────────────────────
@@ -837,7 +837,7 @@ def get_proactive_checklist(scores: dict, rating: str) -> list[dict]:
             "Publish ESG updates, earnings narratives, and community engagement stories."
         ),
         "timing": "Quarterly",
-        "framework": "PR Page Principle (AC820 Week 1)",
+        "framework": "PR Page Principle (Arthur W. Page Society)",
     })
 
     # Sort by priority
