@@ -152,6 +152,128 @@ def assign_rating(crisis_score: float) -> tuple[str, str, str]:
 # 中文: Lerbinger 危机类型分类（来自 Week 2 课件）
 # ════════════════════════════════════════════════════════════════════════════
 
+# ════════════════════════════════════════════════════════════════════════════
+# TOP TRIGGER SENTENCES
+# Surfaces the actual filing sentences driving the high score,
+# so users can see exactly what text is causing the rating.
+# Professor feedback: "it'd be interesting to know what exactly within a
+# 10-K or news is driving a result."
+# 中文: 提取导致高评分的具体句子，回应教授"是什么文字驱动了评级"的问题
+# ════════════════════════════════════════════════════════════════════════════
+
+def extract_top_trigger_sentences(text: str, word_sets: dict, n: int = 6) -> list[dict]:
+    """
+    Split the filing text into sentences and score each one.
+    Returns the top-n sentences ranked by crisis exposure score,
+    along with the flagged words and dimensions detected.
+
+    Each result: {sentence, crisis_score, flagged_words, dimensions}
+    中文: 对每个句子打分，返回危机分最高的 n 句，并标注触发词
+    """
+    # Split on sentence boundaries
+    sentences = re.split(r'(?<=[.!?])\s+', text)
+    sentences = [s.strip() for s in sentences if len(s.split()) >= 6]  # skip fragments
+
+    scored = []
+    risk_dims = ["negative", "uncertainty", "litigious", "weak_modal", "constraining"]
+
+    for sent in sentences:
+        tokens = tokenize(sent)
+        if not tokens:
+            continue
+        total = len(tokens)
+
+        flagged_words = []
+        dim_hits = {}
+        for dim in risk_dims:
+            words_in_dim = word_sets.get(dim, set())
+            hits = [w for w in tokens if w in words_in_dim]
+            if hits:
+                dim_hits[dim] = hits
+                flagged_words.extend(hits)
+
+        if not flagged_words:
+            continue
+
+        # Crisis score for this sentence
+        crisis = sum(
+            (len(dim_hits.get(d, [])) / total * 1000) * w
+            for d, w in _CRISIS_WEIGHTS.items()
+            if d.replace("_pct", "") in dim_hits or d.replace("_pct","") in dim_hits
+        )
+        # Simpler direct calculation
+        crisis_score = sum(
+            (len(dim_hits.get(dim, [])) / total * 1000) * weight
+            for dim, weight in {
+                "uncertainty": 0.30, "litigious": 0.25, "negative": 0.20,
+                "weak_modal": 0.15, "constraining": 0.10,
+            }.items()
+        )
+
+        scored.append({
+            "sentence":    sent[:300],   # truncate very long sentences
+            "crisis_score": round(crisis_score, 3),
+            "flagged_words": list(set(flagged_words))[:8],
+            "dimensions":   list(dim_hits.keys()),
+        })
+
+    # Return top-n by crisis score
+    scored.sort(key=lambda x: x["crisis_score"], reverse=True)
+    return scored[:n]
+
+
+def detect_short_seller_signal(news_df) -> dict:
+    """
+    Scan Yahoo Finance news headlines for mentions of known activist
+    short sellers (Hindenburg, Muddy Waters, Citron, etc.).
+    Returns a dict with: detected (bool), firms_mentioned, headlines
+
+    Professor feedback: "you may want to split NLP signals based on the
+    source — whether it comes from short sellers"
+    中文: 从新闻标题检测知名做空机构的报告信号
+    做空机构报告是独立于公司官方披露之外的最强负面外部信号
+    """
+    # Known activist short seller firms (Willkie 2024 report + major others)
+    # 中文: 主要做空机构名单（来自 Willkie Farr 2024 报告）
+    SHORT_SELLERS = [
+        "hindenburg", "muddy waters", "citron", "grizzly research",
+        "iceberg research", "viceroy", "blue orca", "jehoshaphat",
+        "short seller", "short report", "short position", "short attack",
+        "activist short", "fraud allegations", "accounting fraud",
+        "overstated revenue", "fabricated", "whistleblower",
+    ]
+
+    if news_df is None or len(news_df) == 0:
+        return {"detected": False, "firms_mentioned": [], "headlines": []}
+
+    titles = news_df.get("title", news_df.get("Title", []))
+    if hasattr(titles, "tolist"):
+        titles = titles.tolist()
+
+    detected_firms = []
+    alert_headlines = []
+
+    for title in titles:
+        title_lower = str(title).lower()
+        for firm in SHORT_SELLERS:
+            if firm in title_lower:
+                if firm not in detected_firms:
+                    detected_firms.append(firm)
+                if title not in alert_headlines:
+                    alert_headlines.append(title)
+                break
+
+    return {
+        "detected":        len(detected_firms) > 0,
+        "firms_mentioned": detected_firms,
+        "headlines":       alert_headlines[:5],
+        "severity":        "🔴 CRITICAL" if any(f in detected_firms for f in
+                           ["hindenburg","muddy waters","citron","grizzly research",
+                            "viceroy","blue orca"]) else
+                           "🟠 HIGH" if detected_firms else "🟢 None",
+    }
+
+
 def classify_lerbinger_type(scores: dict) -> dict:
     """
     Classify the filing into Lerbinger's crisis typology based on LM scores.
