@@ -1,3 +1,8 @@
+# app.py
+# Corporate Disclosure Crisis Radar — Main Streamlit Application
+# AC820/BA870 Financial Analytics, Spring 2026 | Boston University Questrom
+# 中文: Streamlit 主程序，运行方式: streamlit run app.py
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
