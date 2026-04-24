@@ -34,6 +34,7 @@ def init_state():
         "peer_results": [],
         "setup_complete": False,
         "active_step": "Setup",
+        "nav_page": "Overview",
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -221,9 +222,7 @@ def sidebar_navigation():
         page = st.radio(
             "Go to",
             ["Overview", "Setup", "Analyze", "Review", "Action Plan", "Methods"],
-            index=["Overview", "Setup", "Analyze", "Review", "Action Plan", "Methods"].index(
-                st.session_state.active_step if st.session_state.active_step in ["Setup", "Analyze"] else "Overview"
-            ) if st.session_state.active_step in ["Setup", "Analyze"] else 0,
+            key="nav_page",
         )
 
         st.divider()
@@ -444,6 +443,7 @@ def run_analysis(ticker: str, form_code: str):
         "filing_text_snippet": filing_text[:3000],
     }
     st.session_state.active_step = "Review"
+    st.session_state.nav_page    = "Review"
 
 
 def create_radar(scores: dict, color: str):
@@ -806,6 +806,7 @@ def page_setup():
     )
     if st.button("Continue to analyze →"):
         st.session_state.active_step = "Analyze"
+        st.session_state.nav_page    = "Analyze"
         st.rerun()
 
 
@@ -1106,6 +1107,7 @@ def page_review():
     st.write("")
     if st.button("Continue to action plan →"):
         st.session_state.active_step = "Action Plan"
+        st.session_state.nav_page    = "Action Plan"
         st.rerun()
 
 
