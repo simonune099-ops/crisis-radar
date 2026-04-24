@@ -148,8 +148,9 @@ def assign_rating(crisis_score: float) -> tuple[str, str, str]:
 
 # ════════════════════════════════════════════════════════════════════════════
 # LERBINGER CRISIS TYPE CLASSIFICATION
-# Source: Lerbinger (1997), adapted from AC820 Week 2 materials
-# 中文: Lerbinger 危机类型分类（来自 Week 2 课件）
+# Source: Lerbinger (1997) "The Crisis Manager: Facing Disasters, Conflicts,
+#         and Failures." — eight crisis types mapped to LM signal patterns.
+# 中文: Lerbinger 危机类型分类（1997年八类危机框架）
 # ════════════════════════════════════════════════════════════════════════════
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -276,19 +277,21 @@ def detect_short_seller_signal(news_df) -> dict:
 
 def classify_lerbinger_type(scores: dict) -> dict:
     """
-    Classify the filing into Lerbinger's crisis typology based on LM scores.
+    Classify the filing into Lerbinger's (1997) crisis typology based on LM scores.
 
-    Four types (mapped to LM signal patterns):
-      1. Mismanagement / Misconduct  — high litigious + high constraining
-      2. Stakeholder Confrontation   — high litigious + high negative (external framing)
-      3. Technological Failure       — high uncertainty + high constraining (technical unknowns)
-      4. Environment & Sustainability — high uncertainty + high negative (external shocks)
+    Four dominant types mapped to LM signal patterns (from Lerbinger's eight-type model):
+      1. Management Misconduct     — high litigious + high constraining (legal/governance exposure)
+      2. Stakeholder Confrontation — high litigious + high negative (external conflict framing)
+      3. Technological Crisis      — high uncertainty + high constraining (operational unknowns)
+      4. Natural / Economic Crisis — high uncertainty + high negative (external force majeure)
+
+    Each type carries a lerbinger_response: the communication strategy Lerbinger prescribes
+    for that specific crisis category.
 
     Returns a dict with: type_name, description, root_vulnerability,
-                         exacerbating_factors, lm_signal_basis
+                         exacerbating_factors, lm_signal_basis, lerbinger_response
 
-    中文: 根据 LM 维度打分，判断属于哪种 Lerbinger 危机类型
-    Lerbinger 四类：管理失当、利益相关者对抗、技术失败、环境/可持续性
+    Source: Lerbinger (1997) "The Crisis Manager: Facing Disasters, Conflicts, and Failures."
     """
     lit  = scores.get("litigious_pct",    0)
     con  = scores.get("constraining_pct", 0)
@@ -296,85 +299,139 @@ def classify_lerbinger_type(scores: dict) -> dict:
     unc  = scores.get("uncertainty_pct",  0)
     weak = scores.get("weak_modal_pct",   0)
 
-    # Score each type
-    # 中文: 为每种危机类型计算匹配分
+    # Score each type — higher weight on the most diagnostic LM dimensions
     type_scores = {
-        "Mismanagement / Misconduct":   lit * 1.5 + con * 1.2,
-        "Stakeholder Confrontation":    lit * 1.2 + neg * 1.0,
-        "Technological Failure":        unc * 1.2 + con * 1.0 + weak * 0.5,
-        "Environment & Sustainability": unc * 1.0 + neg * 1.2,
+        "Management Misconduct":     lit * 1.5 + con * 1.2,
+        "Stakeholder Confrontation": lit * 1.2 + neg * 1.0,
+        "Technological Crisis":      unc * 1.2 + con * 1.0 + weak * 0.5,
+        "Natural / Economic Crisis": unc * 1.0 + neg * 1.2,
     }
 
     best_type = max(type_scores, key=type_scores.get)
     best_score = type_scores[best_type]
 
     type_details = {
-        "Mismanagement / Misconduct": {
+        "Management Misconduct": {
             "icon": "⚖️",
             "description": (
                 "Filing language suggests regulatory scrutiny or management conduct issues. "
-                "High litigious and constraining language signals legal exposure "
-                "and possible governance failures."
+                "High litigious and constraining language signals legal exposure and possible "
+                "governance failures. Lerbinger places this in the 'preventable crisis' "
+                "category — caused by internal decisions, not external forces."
             ),
             "root_vulnerability": "Internal — Management & Governance",
-            "exacerbating_factors": ["Social media amplification", "Regulatory enforcement pressure",
-                                     "Decision-making bias (optimism bias)"],
+            "exacerbating_factors": [
+                "Social media amplification",
+                "Regulatory enforcement pressure",
+                "Decision-making bias (optimism bias, groupthink)",
+            ],
             "lm_signal_basis": f"Litigious: {lit:.1f}/1000 words | Constraining: {con:.1f}/1000 words",
+            "lerbinger_response": (
+                "Accept responsibility clearly and early. Lerbinger prescribes a "
+                "Rebuild posture: issue a public statement with concrete corrective "
+                "actions and timelines; cooperate fully with regulators; implement "
+                "structural governance reforms visible to stakeholders. Avoid ambiguity "
+                "— hedging language accelerates trust erosion in misconduct crises."
+            ),
             "stealing_thunder_tip": (
-                "Consider proactively disclosing corrective governance actions before "
-                "regulators announce — 'Stealing Thunder' reduces reputational damage by "
-                "up to 35% (Arpan & Roskos-Ewoldsen, 2005)."
+                "Steal Thunder — disclose corrective actions before regulators announce. "
+                "Arpan & Roskos-Ewoldsen (2005) show proactive disclosure reduces "
+                "reputational damage by up to 35%."
             ),
         },
         "Stakeholder Confrontation": {
             "icon": "🤝",
             "description": (
-                "Filing signals external stakeholder pressure — regulators, activists, "
+                "Filing signals external stakeholder pressure — activists, regulators, "
                 "or institutional investors may be in adversarial positions. "
-                "High negative language combined with litigation signals an external conflict."
+                "Lerbinger defines Confrontation crises as situations where 'discontented "
+                "groups challenge the organization,' often escalating if ignored "
+                "(Lerbinger, 1997, p. 57)."
             ),
             "root_vulnerability": "External — Stakeholder & Political Forces",
-            "exacerbating_factors": ["Globalization (cross-border regulatory complexity)",
-                                     "Social forces (activist movements, ESG scrutiny)",
-                                     "Media amplification"],
+            "exacerbating_factors": [
+                "Globalization (cross-border regulatory complexity)",
+                "Social forces (activist movements, ESG scrutiny)",
+                "Media amplification of stakeholder narratives",
+            ],
             "lm_signal_basis": f"Litigious: {lit:.1f}/1000 words | Negative: {neg:.1f}/1000 words",
+            "lerbinger_response": (
+                "Lerbinger's prescribed response for Confrontation crises is "
+                "Engagement and Dialogue — NOT bolstering or denial. Steps: "
+                "(1) Listen actively to the stakeholders driving the confrontation; "
+                "(2) Identify their core grievances before responding publicly; "
+                "(3) Meet directly with key activist or institutional groups; "
+                "(4) Find common ground and negotiate a visible resolution; "
+                "(5) Communicate the outcome to all stakeholders. "
+                "Fighting or ignoring confrontation typically escalates the crisis "
+                "and increases media attention (Lerbinger, 1997)."
+            ),
             "stealing_thunder_tip": (
-                "Engage key stakeholders directly before public escalation. "
-                "Prepare a stakeholder communication map (identify, prioritize by impact, "
-                "assign communication leads)."
+                "Reach out to the confronting stakeholder group directly before "
+                "they escalate to media. A proactive dialogue invitation signals "
+                "good faith and can defuse public escalation."
             ),
         },
-        "Technological Failure": {
+        "Technological Crisis": {
             "icon": "⚙️",
             "description": (
                 "Elevated uncertainty and constraining language suggests operational or "
                 "technical unknowns — system failures, supply chain disruptions, or "
-                "product/process deficiencies that management cannot fully characterize yet."
+                "product/process deficiencies that management cannot fully characterize yet. "
+                "Lerbinger (1997) classifies these as crises rooted in 'the interaction "
+                "of technology and human factors.'"
             ),
             "root_vulnerability": "Internal — Operations & Technology",
-            "exacerbating_factors": ["Supply chain complexity", "Human error in decision-making",
-                                     "Globalization (cross-border operational risk)"],
+            "exacerbating_factors": [
+                "Supply chain complexity",
+                "Human error amplifying technical failures",
+                "Globalization (cross-border operational risk)",
+            ],
             "lm_signal_basis": f"Uncertainty: {unc:.1f}/1000 words | Constraining: {con:.1f}/1000 words",
+            "lerbinger_response": (
+                "Lerbinger prescribes Transparency and Technical Accountability: "
+                "(1) Disclose what is known and what is still being assessed; "
+                "(2) Provide specific remediation timelines — vague 'we are monitoring' "
+                "language increases stakeholder anxiety; "
+                "(3) Demonstrate technical competence by publishing milestones; "
+                "(4) Communicate safety measures to all affected stakeholders first. "
+                "Early technical honesty builds more credibility than delayed 'reassurance.'"
+            ),
             "stealing_thunder_tip": (
-                "Disclose technical issues with specific remediation timelines. "
-                "Vague language ('we are monitoring') significantly increases investor anxiety — "
-                "replace with concrete metrics and milestones."
+                "Disclose technical issues with specific remediation timelines before "
+                "external reports emerge. Replace hedge words ('may', 'could', 'possibly') "
+                "with concrete metrics and dates."
             ),
         },
-        "Environment & Sustainability": {
-            "icon": "🌍",
+        "Natural / Economic Crisis": {
+            "icon": "🌐",
             "description": (
-                "The filing reflects exposure to external environmental or macro shocks — "
-                "climate events, regulatory ESG mandates, or economic force majeure. "
-                "The organization is positioned as a victim of external forces."
+                "The filing reflects exposure to external natural events or macro-economic "
+                "shocks — disasters, recessions, regulatory force majeure, or geopolitical "
+                "disruption. Lerbinger (1997) places these in the 'Acts of Nature' and "
+                "'Business/Economic' crisis categories, where the organization is "
+                "primarily positioned as a responding party, not a causal agent."
             ),
-            "root_vulnerability": "External — Environment & Economic Forces",
-            "exacerbating_factors": ["Climate impact", "Political/legal forces",
-                                     "Economic forces (recession, inflation, supply disruption)"],
+            "root_vulnerability": "External — Natural & Economic Forces",
+            "exacerbating_factors": [
+                "Natural events (weather, seismic, pandemic)",
+                "Political/regulatory forces",
+                "Economic forces (recession, inflation, supply disruption)",
+            ],
             "lm_signal_basis": f"Uncertainty: {unc:.1f}/1000 words | Negative: {neg:.1f}/1000 words",
+            "lerbinger_response": (
+                "Lerbinger's response for externally-driven crises centers on "
+                "Resilience Demonstration: "
+                "(1) Contextualize the external event clearly — show it is beyond management control; "
+                "(2) Demonstrate preparedness: What contingency plans exist? What buffers are in place? "
+                "(3) Avoid over-attributing to external factors (stakeholders will ask 'why weren't "
+                "you better prepared?'); "
+                "(4) Focus communications on the company's response actions, not the external event itself. "
+                "Stakeholders accept external crises more readily when they see a credible response plan."
+            ),
             "stealing_thunder_tip": (
-                "Proactively frame external attribution with evidence — avoid being perceived "
-                "as deflecting. Contextualize macro impacts with specific company response actions."
+                "Proactively frame external attribution with evidence before media does it for you. "
+                "Pair every external factor cited with a specific company response action."
             ),
         },
     }
@@ -383,8 +440,7 @@ def classify_lerbinger_type(scores: dict) -> dict:
     result["type_name"] = best_type
     result["confidence"] = round(best_score, 2)
 
-    # Secondary type if close
-    # 中文: 如果第二高类型分数接近，列出作为次要警示
+    # Secondary type if close (within 30% of top score)
     sorted_types = sorted(type_scores.items(), key=lambda x: x[1], reverse=True)
     if len(sorted_types) > 1 and sorted_types[1][1] > best_score * 0.7:
         result["secondary_type"] = sorted_types[1][0]
@@ -396,9 +452,9 @@ def classify_lerbinger_type(scores: dict) -> dict:
 
 # ════════════════════════════════════════════════════════════════════════════
 # CRISIS LIFECYCLE STAGE
-# Source: Crandall (2013) lifecycle model, AC820 Week 1 & Week 3
+# Source: Crandall, Neck & Crandall (2014) "Managing the Unexpected"
 # Preconditions → Trigger Event → Crisis → Post-Crisis
-# 中文: 危机生命周期阶段判断（Week 1 课件）
+# 中文: 危机生命周期阶段判断
 # ════════════════════════════════════════════════════════════════════════════
 
 def get_lifecycle_stage(scores: dict, rating: str) -> dict:
@@ -512,9 +568,9 @@ def get_lifecycle_stage(scores: dict, rating: str) -> dict:
 
 # ════════════════════════════════════════════════════════════════════════════
 # VICTIM RECOVERY CYCLE GUIDANCE
-# Source: Coombs SCCT (2007) + Victim Recovery Cycle, AC820 Week 1 & Week 6
+# Source: Coombs (2007) "Ongoing Crisis Communication"; Victim Recovery Cycle
 # Feelings → Seeking Retribution → Search for Healing → Victim's Needs
-# 中文: 受害者恢复循环 + SCCT 整合框架（Week 1 + Week 6）
+# 中文: 受害者恢复循环 + SCCT 整合框架
 # ════════════════════════════════════════════════════════════════════════════
 
 def get_scct_guidance(scores: dict, pr_divergence: float | None = None) -> dict:
@@ -670,16 +726,16 @@ def get_scct_guidance(scores: dict, pr_divergence: float | None = None) -> dict:
 
 # ════════════════════════════════════════════════════════════════════════════
 # PROACTIVE ACTION CHECKLIST
-# Source: AC820 Week 3 "Proactive Approach" + Week 2 External Scanning logic
+# Source: Mitroff (2005) "Why Some Companies Emerge Stronger"; Arpan & Roskos-Ewoldsen (2005)
 # Vulnerability Audit, Process Improvement, Stealing Thunder,
 # Leaders Ready, Monitor Your Radar Screen
-# 中文: 主动预防行动清单（Week 3 课件）
+# 中文: 主动预防行动清单
 # ════════════════════════════════════════════════════════════════════════════
 
 def get_proactive_checklist(scores: dict, rating: str) -> list[dict]:
     """
     Generate a prioritized proactive action checklist based on the
-    scoring profile, following the AC820 Proactive Approach framework.
+    scoring profile, following the Mitroff (2005) proactive crisis preparation framework.
 
     Each item: {priority, action, rationale, timing}
     Priority: 🔴 Immediate | 🟠 This Quarter | 🟡 This Year | 🟢 Ongoing
@@ -734,7 +790,7 @@ def get_proactive_checklist(scores: dict, rating: str) -> list[dict]:
                 "compounding risk (Mismanagement crisis type)."
             ),
             "timing": "Before next 10-K/Q filing",
-            "framework": "Lerbinger: Mismanagement/Misconduct type",
+            "framework": "Lerbinger (1997): Management Misconduct type",
         })
 
     # ── 4. Uncertainty / Hedge language reduction ────────────────────────────
@@ -850,10 +906,10 @@ def get_proactive_checklist(scores: dict, rating: str) -> list[dict]:
 
 # ════════════════════════════════════════════════════════════════════════════
 # ISSUES MANAGEMENT TRIAGE
-# Source: Crisis Ready® Flowchart + AC820 Week 1 Issues Management Process
+# Source: Regester & Larkin (2008) "Risk Issues and Crisis Management"
 # Identify → Listen → Investigate → React → Respond → Communicate → Debrief
 # Crisis Spectrum: Mild (BAU) → Issues Management → Crisis Management
-# 中文: Issues Management 分级判断（Crisis Ready 决策树逻辑）
+# 中文: Issues Management 分级判断
 # ════════════════════════════════════════════════════════════════════════════
 
 def triage_issue_severity(scores: dict, rating: str) -> dict:

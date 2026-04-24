@@ -1338,35 +1338,68 @@ def page_action_plan():
     checklist = results.get("checklist", [])
 
     st.markdown("## Step 4 · Action plan")
-    render_summary_banner(
-        "Recommended response posture",
-        f"{guidance.get('strategy', 'N/A')} · {guidance.get('action', '')}",
-        rating_color,
-    )
 
+    # ── Summary row ──────────────────────────────────────────────────────────
     c1, c2, c3 = st.columns(3)
     with c1:
-        render_metric_card("SCCT cluster", guidance.get("crisis_type", "N/A"), "Recommended communication stance")
+        render_metric_card(
+            "Lerbinger crisis type",
+            f"{lerbinger.get('icon', '')} {lerbinger.get('type_name', 'Unknown')}",
+            lerbinger.get("root_vulnerability", ""),
+        )
     with c2:
-        render_metric_card("Lifecycle stage", lifecycle.get("stage", "Unknown"), lifecycle.get("urgency", ""))
+        render_metric_card(
+            "Lifecycle stage",
+            lifecycle.get("stage", "Unknown"),
+            lifecycle.get("urgency", ""),
+        )
     with c3:
-        render_metric_card("Issues triage", triage.get("level", "N/A"), "Escalation recommendation")
+        render_metric_card(
+            "Issues triage",
+            triage.get("level", "N/A"),
+            "Escalation recommendation",
+        )
 
+    st.write("")
+
+    # ── PRIMARY: Lerbinger response strategy ─────────────────────────────────
+    # The recommended action must align with the specific crisis TYPE (Lerbinger 1997),
+    # not just the SCCT cluster — e.g. Stakeholder Confrontation requires engagement,
+    # not bolstering.
+    if lerbinger:
+        lerbinger_action = lerbinger.get("lerbinger_response", "")
+        st.markdown("### Recommended response — Lerbinger (1997)")
+        render_summary_banner(
+            f"{lerbinger.get('icon', '⚠️')}  {lerbinger.get('type_name', 'Unknown')} crisis type",
+            lerbinger_action,
+            rating_color,
+        )
+        st.caption(
+            f"LM signal basis: {lerbinger.get('lm_signal_basis', '')}  |  "
+            f"Root vulnerability: {lerbinger.get('root_vulnerability', '')}"
+        )
+
+    st.write("")
+
+    # ── SECONDARY: SCCT communication posture ────────────────────────────────
     left, right = st.columns([1, 1])
     with left:
-        st.markdown("### Communication guidance")
-        st.info(guidance.get("action", "No action guidance available."))
-        st.markdown("**Advocacy ↔ Accommodation**")
-        st.write(guidance.get("advocacy_accommodation", "N/A"))
-        st.markdown("**LP / Investor trust signal**")
-        st.write(guidance.get("lp_signal", "N/A"))
+        st.markdown("### SCCT communication posture")
+        st.caption(
+            "Situational Crisis Communication Theory (Coombs, 2007) — "
+            "complements Lerbinger's typology with a stakeholder-perception lens."
+        )
+        st.info(
+            f"**{guidance.get('strategy', 'N/A')}**\n\n"
+            f"{guidance.get('action', 'No action guidance available.')}"
+        )
+        st.markdown(f"**Advocacy ↔ Accommodation:** {guidance.get('advocacy_accommodation', 'N/A')}")
+        st.markdown(f"**LP / Investor trust signal:** {guidance.get('lp_signal', 'N/A')}")
 
-        if lerbinger:
-            st.markdown("### Crisis type")
-            st.success(f"{lerbinger.get('icon', '⚠️')} {lerbinger.get('type_name', 'Unknown')}")
-            st.write(lerbinger.get("description", ""))
-            if lerbinger.get("stealing_thunder_tip"):
-                st.warning(f"Stealing Thunder: {lerbinger['stealing_thunder_tip']}")
+        # Stealing Thunder tip
+        if lerbinger.get("stealing_thunder_tip"):
+            st.write("")
+            st.warning(f"**Steal Thunder:** {lerbinger['stealing_thunder_tip']}")
 
     with right:
         st.markdown("### Immediate checklist")
@@ -1378,14 +1411,30 @@ def page_action_plan():
             st.info("No checklist was generated.")
 
         if triage.get("response_guidance"):
+            st.write("")
             st.markdown("### Triage guidance")
             st.write(triage["response_guidance"])
 
-    with st.expander("Framework details"):
+    # ── Victim recovery cycle details ─────────────────────────────────────────
+    vr = guidance.get("victim_recovery", {})
+    if vr and any(vr.values()):
+        with st.expander("Stakeholder recovery cycle (Coombs, 2007)"):
+            for stage, label in [
+                ("stage_1_feelings",    "Stage 1 — Feelings"),
+                ("stage_2_retribution", "Stage 2 — Seeking retribution"),
+                ("stage_3_healing",     "Stage 3 — Search for healing"),
+                ("stage_4_needs",       "Stage 4 — Stakeholder needs"),
+            ]:
+                if vr.get(stage):
+                    st.markdown(f"**{label}**")
+                    st.write(vr[stage])
+
+    # ── Framework details ─────────────────────────────────────────────────────
+    with st.expander("Lifecycle & exacerbating factors"):
         st.markdown("**Lifecycle stage description**")
         st.write(lifecycle.get("description", "N/A"))
         if lerbinger.get("exacerbating_factors"):
-            st.markdown("**Exacerbating factors**")
+            st.markdown("**Exacerbating factors (Lerbinger, 1997)**")
             for factor in lerbinger["exacerbating_factors"]:
                 st.markdown(f"- {factor}")
 
