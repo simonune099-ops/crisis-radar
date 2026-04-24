@@ -76,62 +76,52 @@ def inject_css():
     st.markdown(
         """
         <style>
+        /* ══════════════════════════════════════════════════════════
+           Bloomberg Terminal Dark Theme — CSS Layer
+           Base palette is set in .streamlit/config.toml.
+           This file adds custom components and layout polish only.
+           ══════════════════════════════════════════════════════════ */
+
         /* ── Google Fonts ────────────────────────────────────── */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 
-        /* ── Global ──────────────────────────────────────────── */
+        /* ── Global typography ───────────────────────────────── */
         html, body, [class*="css"] {
             font-family: 'Inter', sans-serif !important;
-        }
-        .stApp {
-            background: #0D1117 !important;
         }
         .block-container {
             padding-top: 1.4rem !important;
             padding-bottom: 2.5rem !important;
             max-width: 1260px !important;
         }
-        h1,h2,h3,h4,h5,h6 { color: #E6EDF3 !important; }
-        p, li, .stMarkdown p { color: #C9D1D9 !important; }
         hr { border-color: #21262D !important; margin: 1rem 0 !important; }
-        .stCaption, [data-testid="stCaptionContainer"] p {
-            color: #8B949E !important; font-size: .82rem !important;
-        }
 
-        /* ── Top header bar → dark ───────────────────────────── */
+        /* ── Top header bar ──────────────────────────────────── */
         header[data-testid="stHeader"] {
             background: #0D1117 !important;
             border-bottom: 1px solid #21262D !important;
         }
-        [data-testid="stToolbar"] { background: transparent !important; }
+        [data-testid="stToolbar"]   { background: transparent !important; }
         [data-testid="stDecoration"] { display: none !important; }
+
+        /* Hide the auto-generated app title in the toolbar */
+        [data-testid="stToolbar"] [data-testid="stToolbarActionButtonLabel"] {
+            display: none !important;
+        }
 
         /* ── Sidebar ─────────────────────────────────────────── */
         section[data-testid="stSidebar"] {
             background: #0D1117 !important;
             border-right: 1px solid #21262D !important;
         }
-        section[data-testid="stSidebar"] * { color: #C9D1D9 !important; }
-        section[data-testid="stSidebar"] h1,
-        section[data-testid="stSidebar"] h2,
-        section[data-testid="stSidebar"] h3 { color: #E6EDF3 !important; }
 
-        /* ── Sidebar radio → nav list ────────────────────────── */
-        /* Section label */
-        div[data-testid="stRadio"] > label p {
-            color: #8B949E !important;
-            font-size: .72rem !important;
-            font-weight: 700 !important;
-            text-transform: uppercase !important;
-            letter-spacing: .08em !important;
-        }
-        /* Each option row */
+        /* ── Sidebar radio nav ───────────────────────────────── */
         div[data-testid="stRadio"] div[role="radiogroup"] {
             gap: 2px !important;
         }
         div[data-testid="stRadio"] div[role="radiogroup"] label {
             border-radius: 6px !important;
-            padding: 7px 10px 7px 10px !important;
+            padding: 7px 10px !important;
             margin: 1px 0 !important;
             transition: background .12s !important;
             border-left: 3px solid transparent !important;
@@ -139,34 +129,87 @@ def inject_css():
         div[data-testid="stRadio"] div[role="radiogroup"] label:hover {
             background: #161B22 !important;
         }
-        /* Option text visible */
-        div[data-testid="stRadio"] div[role="radiogroup"] label p,
-        div[data-testid="stRadio"] div[role="radiogroup"] label span {
-            color: #C9D1D9 !important;
-            font-size: .9rem !important;
-            font-weight: 500 !important;
-        }
-        /* Radio circle: amber accent */
-        div[data-testid="stRadio"] div[role="radiogroup"] input[type="radio"] {
-            accent-color: #E6A817 !important;
+
+        /* ── Tabs — amber active underline ───────────────────── */
+        div[data-baseweb="tab-list"] { background: transparent !important; }
+        div[data-baseweb="tab"]      { background: transparent !important; }
+        div[aria-selected="true"][data-baseweb="tab"] {
+            border-bottom: 2px solid #E6A817 !important;
         }
 
-        /* ── Cards ───────────────────────────────────────────── */
-        .app-card, .kpi-card, .status-card {
-            background: #161B22;
-            border: 1px solid #21262D;
-            border-radius: 12px;
-            padding: 20px 22px;
+        /* ── Metric cards ────────────────────────────────────── */
+        div[data-testid="stMetric"] {
+            background: #161B22 !important;
+            border: 1px solid #21262D !important;
+            border-radius: 10px !important;
+            padding: 14px 16px !important;
         }
+
+        /* ── Buttons ─────────────────────────────────────────── */
+        .stButton > button[kind="primary"] {
+            background: #E6A817 !important;
+            color: #0D1117 !important;
+            border: none !important;
+            font-weight: 700 !important;
+            border-radius: 8px !important;
+        }
+        .stButton > button[kind="primary"]:hover { background: #C9920E !important; }
+        .stButton > button[kind="secondary"] {
+            background: transparent !important;
+            border: 1px solid #30363D !important;
+            border-radius: 8px !important;
+        }
+        .stButton > button[kind="secondary"]:hover {
+            border-color: #E6A817 !important;
+            color: #E6A817 !important;
+        }
+
+        /* ── Expanders ───────────────────────────────────────── */
+        div[data-testid="stExpander"] {
+            border: 1px solid #21262D !important;
+            border-radius: 10px !important;
+        }
+
+        /* ── DataFrames — thin border ────────────────────────── */
+        div[data-testid="stDataFrame"] {
+            border: 1px solid #21262D !important;
+            border-radius: 10px !important;
+            overflow: hidden !important;
+        }
+
+        /* ── Plotly modebar ──────────────────────────────────── */
+        .modebar { background: transparent !important; }
+        .modebar-btn path { fill: #8B949E !important; }
+
+        /* ── Selectbox dropdown ──────────────────────────────── */
+        ul[data-testid="stSelectboxVirtualDropdown"],
+        li[role="option"] {
+            background: #1C2333 !important;
+        }
+        li[role="option"]:hover { background: #21262D !important; }
+
+        /* ── Alerts ──────────────────────────────────────────── */
+        div[data-testid="stAlert"] {
+            border-radius: 10px !important;
+            border-left-width: 4px !important;
+        }
+
+        /* ── Plotly chart background ─────────────────────────── */
+        div[data-testid="stPlotlyChart"] > div { background: transparent !important; }
+
+        /* ══════════════════════════════════════════════════════
+           Custom component classes
+           ══════════════════════════════════════════════════════ */
+
+        /* Hero card */
         .hero-card {
             background: linear-gradient(135deg, #0D1117 0%, #1A2233 60%, #0D1523 100%);
             border: 1px solid #21262D;
             border-top: 3px solid #E6A817;
             border-radius: 14px;
             padding: 32px 36px;
+            margin-bottom: 8px;
         }
-
-        /* ── Typography helpers ──────────────────────────────── */
         .section-label {
             color: #E6A817;
             font-size: .75rem;
@@ -184,6 +227,16 @@ def inject_css():
             letter-spacing: -.02em;
         }
         .subtle { color: #8B949E; font-size: .97rem; line-height: 1.6; }
+
+        /* App / KPI cards */
+        .app-card, .kpi-card, .status-card {
+            background: #161B22;
+            border: 1px solid #21262D;
+            border-radius: 12px;
+            padding: 20px 22px;
+        }
+
+        /* Tech pills */
         .pill {
             display: inline-block;
             padding: .22rem .65rem;
@@ -197,12 +250,16 @@ def inject_css():
             margin-bottom: 6px;
             font-family: 'JetBrains Mono', monospace;
         }
+
+        /* Summary banner */
         .summary-banner {
             border-radius: 10px;
             padding: 16px 20px;
             color: #E6EDF3;
             margin-bottom: 14px;
         }
+
+        /* KPI card internals */
         .metric-label {
             color: #8B949E;
             font-size: .75rem;
@@ -222,178 +279,21 @@ def inject_css():
         .small-list li { color: #C9D1D9; margin-bottom: .4rem; }
         .mono { font-family: 'JetBrains Mono', monospace !important; }
 
-        /* ── Workflow steps in sidebar ───────────────────────── */
+        /* Sidebar workflow steps */
         .wf-step {
             display: flex; align-items: center; gap: 10px;
             padding: 7px 10px; border-radius: 7px;
             margin-bottom: 3px; font-size: .88rem; font-weight: 500;
             color: #8B949E;
         }
-        .wf-step.done  { color: #3FB950; }
+        .wf-step.done   { color: #3FB950; }
         .wf-step.active { color: #E6EDF3; background: #1C2333; font-weight: 700; }
-        .wf-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0;
-                  background: #30363D; }
+        .wf-dot {
+            width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+            background: #30363D;
+        }
         .wf-step.done  .wf-dot { background: #3FB950; }
         .wf-step.active .wf-dot { background: #E6A817; }
-
-        /* ── Streamlit components override ───────────────────── */
-        div[data-testid="stMetric"] {
-            background: #161B22 !important;
-            border: 1px solid #21262D !important;
-            border-radius: 10px !important;
-            padding: 14px 16px !important;
-        }
-        div[data-testid="stMetric"] label {
-            color: #8B949E !important; font-size:.78rem !important;
-            text-transform: uppercase !important; letter-spacing:.06em !important;
-        }
-        div[data-testid="stMetricValue"] > div { color: #E6EDF3 !important; }
-        div[data-testid="stMetricDelta"] { color: #3FB950 !important; }
-
-        button[kind="primary"], .stButton > button[kind="primary"] {
-            background: #E6A817 !important;
-            color: #0D1117 !important;
-            border: none !important;
-            font-weight: 700 !important;
-            border-radius: 8px !important;
-            font-family: 'Inter', sans-serif !important;
-        }
-        button[kind="primary"]:hover { background: #C9920E !important; }
-        .stButton > button[kind="secondary"] {
-            background: transparent !important;
-            border: 1px solid #30363D !important;
-            color: #E6EDF3 !important;
-            border-radius: 8px !important;
-        }
-        .stButton > button[kind="secondary"]:hover {
-            border-color: #E6A817 !important;
-            color: #E6A817 !important;
-        }
-
-        div[data-testid="stSelectbox"] > div,
-        div[data-testid="stMultiSelect"] > div {
-            background: #161B22 !important;
-            border-color: #30363D !important;
-            color: #E6EDF3 !important;
-        }
-        div[data-testid="stTextInput"] input,
-        div[data-testid="stTextArea"] textarea,
-        div[data-testid="stNumberInput"] input {
-            background: #161B22 !important;
-            border-color: #30363D !important;
-            color: #E6EDF3 !important;
-        }
-        div[data-testid="stExpander"] {
-            background: #161B22 !important;
-            border: 1px solid #21262D !important;
-            border-radius: 10px !important;
-        }
-        div[data-testid="stExpander"] summary { color: #C9D1D9 !important; }
-        div[data-testid="stDataFrame"] {
-            border: 1px solid #21262D !important;
-            border-radius: 10px !important;
-        }
-        /* Progress bar → tech blue */
-        div[data-testid="stProgress"] > div > div,
-        div[data-testid="stProgressBar"] > div,
-        [role="progressbar"] > div,
-        .stProgress > div > div > div {
-            background: #388BFD !important;
-        }
-        div[data-testid="stProgress"] { background: #21262D !important; }
-        div[data-testid="stAlert"] {
-            border-radius: 10px !important;
-            border-left-width: 4px !important;
-        }
-        div[data-baseweb="tab-list"] { background: transparent !important; }
-        div[data-baseweb="tab"] {
-            background: transparent !important;
-            color: #8B949E !important;
-        }
-        div[aria-selected="true"][data-baseweb="tab"] {
-            color: #E6A817 !important;
-            border-bottom: 2px solid #E6A817 !important;
-        }
-
-        /* ── Nuke all white/light backgrounds that leak through ─ */
-        .stApp > div, .main > div, .main .block-container > div,
-        div[data-testid="stVerticalBlock"], div[data-testid="stHorizontalBlock"] {
-            background: transparent !important;
-        }
-        /* DataFrame inner table */
-        div[data-testid="stDataFrame"] iframe { background: #161B22 !important; }
-        .dvn-scroller, .glideDataEditor { background: #161B22 !important; }
-
-        /* Plotly chart background → match dark theme */
-        div[data-testid="stPlotlyChart"] > div { background: transparent !important; }
-
-        /* Any remaining white card/surface containers from Streamlit internals */
-        div[data-testid="stForm"],
-        div[class*="stForm"] {
-            background: #161B22 !important;
-            border: 1px solid #21262D !important;
-            border-radius: 10px !important;
-        }
-
-        /* Labels for all inputs */
-        label[data-testid="stWidgetLabel"] p,
-        div[data-testid="stRadio"] > label p,
-        .stSelectbox label p, .stTextInput label p,
-        .stNumberInput label p, .stTextArea label p {
-            color: #8B949E !important;
-            font-size: .8rem !important;
-            font-weight: 600 !important;
-        }
-
-        /* Selectbox dropdown menu */
-        ul[data-testid="stSelectboxVirtualDropdown"],
-        li[role="option"] {
-            background: #1C2333 !important;
-            color: #E6EDF3 !important;
-        }
-        li[role="option"]:hover { background: #21262D !important; }
-
-        /* Info / warning / error / success boxes */
-        div[data-testid="stAlert"] > div {
-            background: transparent !important;
-        }
-        div[data-testid="stAlert"][data-baseweb="notification"] {
-            background: #161B22 !important;
-        }
-
-        /* Spinner text */
-        div[data-testid="stSpinner"] p { color: #8B949E !important; }
-
-        /* st.success / st.info / st.warning / st.error text */
-        div[data-testid="stAlert"] p { color: #E6EDF3 !important; }
-
-        /* Checkbox */
-        label[data-testid="stCheckbox"] span { color: #C9D1D9 !important; }
-
-        /* Plotly modebar (toolbar in charts) */
-        .modebar { background: transparent !important; }
-        .modebar-btn path { fill: #8B949E !important; }
-
-        /* ── Expander content text ───────────────────────────── */
-        div[data-testid="stExpander"] details {
-            background: #161B22 !important;
-        }
-        div[data-testid="stExpander"] details summary span,
-        div[data-testid="stExpander"] details summary p {
-            color: #C9D1D9 !important;
-        }
-        div[data-testid="stExpander"] details > div p,
-        div[data-testid="stExpander"] details > div li,
-        div[data-testid="stExpander"] details > div span,
-        div[data-testid="stExpander"] details > div label {
-            color: #C9D1D9 !important;
-        }
-        /* st.tabs content */
-        div[data-testid="stTabsContent"] p,
-        div[data-testid="stTabsContent"] li,
-        div[data-testid="stTabsContent"] span {
-            color: #C9D1D9 !important;
-        }
 
         /* ── Scrollbars ──────────────────────────────────────── */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
