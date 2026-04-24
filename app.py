@@ -747,6 +747,7 @@ def page_overview():
     st.write("")
     if st.button("Start setup →", type="primary"):
         st.session_state.active_step = "Setup"
+        st.session_state.nav_page    = "Setup"
         st.rerun()
 
 
