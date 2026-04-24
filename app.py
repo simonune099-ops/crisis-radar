@@ -219,11 +219,15 @@ def sidebar_navigation():
         st.markdown(step_status("4. Action Plan", has_results, st.session_state.active_step == "Action Plan"))
         st.divider()
 
+        _nav_options = ["Overview", "Setup", "Analyze", "Review", "Action Plan", "Methods"]
         page = st.radio(
             "Go to",
-            ["Overview", "Setup", "Analyze", "Review", "Action Plan", "Methods"],
-            key="nav_page",
+            _nav_options,
+            index=_nav_options.index(st.session_state.nav_page)
+                  if st.session_state.nav_page in _nav_options else 0,
         )
+        # Keep nav_page in sync with user's selection (no widget key conflict)
+        st.session_state.nav_page = page
 
         st.divider()
         st.caption("**System status**")
