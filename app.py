@@ -44,126 +44,268 @@ def init_state():
 init_state()
 
 # ------------------------------------------------------------
-# Design tokens
+# Design tokens — Bloomberg Terminal dark theme
 # ------------------------------------------------------------
 PALETTE = {
-    "danger": "#B42318",
-    "warning": "#F79009",
-    "success": "#12B76A",
-    "info": "#1570EF",
-    "text": "#101828",
-    "muted": "#667085",
-    "border": "#EAECF0",
-    "surface": "#FFFFFF",
-    "bg": "#F8FAFC",
+    "bg":       "#0D1117",   # deep background
+    "surface":  "#161B22",   # card / panel background
+    "border":   "#21262D",   # subtle border
+    "border2":  "#30363D",   # stronger border
+    "accent":   "#E6A817",   # Bloomberg amber/gold
+    "accent2":  "#388BFD",   # bright blue
+    "text":     "#E6EDF3",   # primary text
+    "muted":    "#8B949E",   # secondary / caption text
+    "success":  "#3FB950",
+    "danger":   "#F85149",
+    "warning":  "#D29922",
+    "info":     "#388BFD",
 }
 
 RATING_COLORS = {
-    "A": "#12B76A",
-    "B": "#1570EF",
-    "C": "#F79009",
-    "D": "#B42318",
+    "A": "#3FB950",   # green
+    "B": "#388BFD",   # blue
+    "C": "#D29922",   # amber
+    "D": "#F85149",   # red
 }
 
 
 # ------------------------------------------------------------
-# UI helpers
+# UI helpers — Bloomberg dark theme
 # ------------------------------------------------------------
 def inject_css():
     st.markdown(
-        f"""
+        """
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
         <style>
-            .stApp {{
-                background: {PALETTE['bg']};
-            }}
-            .block-container {{
-                padding-top: 1.2rem;
-                padding-bottom: 2rem;
-            }}
-            .hero-card, .app-card, .kpi-card, .status-card {{
-                background: white;
-                border: 1px solid {PALETTE['border']};
-                border-radius: 18px;
-                padding: 18px 20px;
-                box-shadow: 0 1px 2px rgba(16,24,40,0.04);
-            }}
-            .section-label {{
-                color: {PALETTE['muted']};
-                font-size: 0.84rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: .04em;
-                margin-bottom: 6px;
-            }}
-            .big-title {{
-                color: {PALETTE['text']};
-                font-size: 2rem;
-                font-weight: 800;
-                line-height: 1.1;
-                margin-bottom: .35rem;
-            }}
-            .subtle {{
-                color: {PALETTE['muted']};
-                font-size: .96rem;
-            }}
-            .pill {{
-                display: inline-block;
-                padding: .2rem .55rem;
-                border-radius: 999px;
-                font-size: .78rem;
-                font-weight: 700;
-                border: 1px solid {PALETTE['border']};
-                background: #fff;
-                color: {PALETTE['text']};
-                margin-right: 6px;
-                margin-bottom: 6px;
-            }}
-            .step-pill {{
-                display: inline-block;
-                padding: .24rem .55rem;
-                border-radius: 999px;
-                font-size: .78rem;
-                font-weight: 700;
-                margin-right: 6px;
-                background: #EEF4FF;
-                color: {PALETTE['info']};
-            }}
-            .summary-banner {{
-                border-radius: 18px;
-                padding: 18px 20px;
-                color: white;
-                margin-bottom: 14px;
-            }}
-            .metric-label {{
-                color: {PALETTE['muted']};
-                font-size: .82rem;
-                font-weight: 600;
-                margin-bottom: 4px;
-            }}
-            .metric-value {{
-                color: {PALETTE['text']};
-                font-size: 1.7rem;
-                font-weight: 800;
-                line-height: 1.1;
-            }}
-            .metric-sub {{
-                color: {PALETTE['muted']};
-                font-size: .82rem;
-                margin-top: 6px;
-            }}
-            .small-list li {{
-                margin-bottom: .35rem;
-            }}
-            div[data-testid="stMetric"] {{
-                background: white;
-                border: 1px solid {PALETTE['border']};
-                border-radius: 16px;
-                padding: 12px 14px;
-            }}
-            div[data-testid="stDataFrame"] {{
-                border-radius: 14px;
-                overflow: hidden;
-            }}
+        /* ── Global ──────────────────────────────────────────── */
+        html, body, [class*="css"] {
+            font-family: 'Inter', sans-serif !important;
+        }
+        .stApp {
+            background: #0D1117 !important;
+        }
+        .block-container {
+            padding-top: 1.4rem !important;
+            padding-bottom: 2.5rem !important;
+            max-width: 1260px !important;
+        }
+        h1,h2,h3,h4,h5,h6 { color: #E6EDF3 !important; }
+        p, li, .stMarkdown p { color: #C9D1D9 !important; }
+        hr { border-color: #21262D !important; margin: 1rem 0 !important; }
+        .stCaption, [data-testid="stCaptionContainer"] p {
+            color: #8B949E !important; font-size: .82rem !important;
+        }
+
+        /* ── Sidebar ─────────────────────────────────────────── */
+        section[data-testid="stSidebar"] {
+            background: #0D1117 !important;
+            border-right: 1px solid #21262D !important;
+        }
+        section[data-testid="stSidebar"] * { color: #C9D1D9 !important; }
+        section[data-testid="stSidebar"] h1,
+        section[data-testid="stSidebar"] h2,
+        section[data-testid="stSidebar"] h3 { color: #E6EDF3 !important; }
+
+        /* sidebar radio → clean nav list */
+        div[data-testid="stRadio"] > label {
+            color: #8B949E !important;
+            font-size: .82rem !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: .06em !important;
+            margin-bottom: 4px !important;
+        }
+        div[data-testid="stRadio"] > div {
+            gap: 1px !important;
+            flex-direction: column !important;
+        }
+        div[data-testid="stRadio"] label {
+            border-radius: 6px !important;
+            padding: 7px 10px 7px 12px !important;
+            margin: 1px 0 !important;
+            transition: background .12s, color .12s !important;
+            font-size: .9rem !important;
+            font-weight: 500 !important;
+            color: #8B949E !important;
+            border-left: 3px solid transparent !important;
+        }
+        div[data-testid="stRadio"] label:hover {
+            background: #161B22 !important;
+            color: #E6EDF3 !important;
+        }
+        div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked),
+        div[data-testid="stRadio"] label:has(input:checked) {
+            background: #1C2333 !important;
+            color: #E6A817 !important;
+            border-left: 3px solid #E6A817 !important;
+            font-weight: 700 !important;
+        }
+        /* hide radio circles */
+        div[data-testid="stRadio"] [data-testid="stMarkdownContainer"] { display:none !important; }
+        div[data-testid="stRadio"] span[data-testid="stRadioLabel"] { display: flex !important; }
+        div[data-testid="stRadio"] div[role="radiogroup"] > label > div:first-child {
+            display: none !important;
+        }
+
+        /* ── Cards ───────────────────────────────────────────── */
+        .app-card, .kpi-card, .status-card {
+            background: #161B22;
+            border: 1px solid #21262D;
+            border-radius: 12px;
+            padding: 20px 22px;
+        }
+        .hero-card {
+            background: linear-gradient(135deg, #0D1117 0%, #1A2233 60%, #0D1523 100%);
+            border: 1px solid #21262D;
+            border-top: 3px solid #E6A817;
+            border-radius: 14px;
+            padding: 32px 36px;
+        }
+
+        /* ── Typography helpers ──────────────────────────────── */
+        .section-label {
+            color: #E6A817;
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            margin-bottom: 8px;
+        }
+        .big-title {
+            color: #E6EDF3;
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: .4rem;
+            letter-spacing: -.02em;
+        }
+        .subtle { color: #8B949E; font-size: .97rem; line-height: 1.6; }
+        .pill {
+            display: inline-block;
+            padding: .22rem .65rem;
+            border-radius: 999px;
+            font-size: .75rem;
+            font-weight: 700;
+            border: 1px solid #30363D;
+            background: #161B22;
+            color: #8B949E;
+            margin-right: 6px;
+            margin-bottom: 6px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .summary-banner {
+            border-radius: 10px;
+            padding: 16px 20px;
+            color: #E6EDF3;
+            margin-bottom: 14px;
+        }
+        .metric-label {
+            color: #8B949E;
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: 6px;
+        }
+        .metric-value {
+            color: #E6EDF3;
+            font-size: 1.75rem;
+            font-weight: 800;
+            line-height: 1.1;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .metric-sub { color: #8B949E; font-size: .8rem; margin-top: 6px; }
+        .small-list li { color: #C9D1D9; margin-bottom: .4rem; }
+        .mono { font-family: 'JetBrains Mono', monospace !important; }
+
+        /* ── Workflow steps in sidebar ───────────────────────── */
+        .wf-step {
+            display: flex; align-items: center; gap: 10px;
+            padding: 7px 10px; border-radius: 7px;
+            margin-bottom: 3px; font-size: .88rem; font-weight: 500;
+            color: #8B949E;
+        }
+        .wf-step.done  { color: #3FB950; }
+        .wf-step.active { color: #E6EDF3; background: #1C2333; font-weight: 700; }
+        .wf-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0;
+                  background: #30363D; }
+        .wf-step.done  .wf-dot { background: #3FB950; }
+        .wf-step.active .wf-dot { background: #E6A817; }
+
+        /* ── Streamlit components override ───────────────────── */
+        div[data-testid="stMetric"] {
+            background: #161B22 !important;
+            border: 1px solid #21262D !important;
+            border-radius: 10px !important;
+            padding: 14px 16px !important;
+        }
+        div[data-testid="stMetric"] label {
+            color: #8B949E !important; font-size:.78rem !important;
+            text-transform: uppercase !important; letter-spacing:.06em !important;
+        }
+        div[data-testid="stMetricValue"] > div { color: #E6EDF3 !important; }
+        div[data-testid="stMetricDelta"] { color: #3FB950 !important; }
+
+        button[kind="primary"], .stButton > button[kind="primary"] {
+            background: #E6A817 !important;
+            color: #0D1117 !important;
+            border: none !important;
+            font-weight: 700 !important;
+            border-radius: 8px !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        button[kind="primary"]:hover { background: #C9920E !important; }
+        .stButton > button[kind="secondary"] {
+            background: transparent !important;
+            border: 1px solid #30363D !important;
+            color: #E6EDF3 !important;
+            border-radius: 8px !important;
+        }
+        .stButton > button[kind="secondary"]:hover {
+            border-color: #E6A817 !important;
+            color: #E6A817 !important;
+        }
+
+        div[data-testid="stSelectbox"] > div,
+        div[data-testid="stMultiSelect"] > div {
+            background: #161B22 !important;
+            border-color: #30363D !important;
+            color: #E6EDF3 !important;
+        }
+        div[data-testid="stTextInput"] input,
+        div[data-testid="stTextArea"] textarea,
+        div[data-testid="stNumberInput"] input {
+            background: #161B22 !important;
+            border-color: #30363D !important;
+            color: #E6EDF3 !important;
+        }
+        div[data-testid="stExpander"] {
+            background: #161B22 !important;
+            border: 1px solid #21262D !important;
+            border-radius: 10px !important;
+        }
+        div[data-testid="stExpander"] summary { color: #C9D1D9 !important; }
+        div[data-testid="stDataFrame"] {
+            border: 1px solid #21262D !important;
+            border-radius: 10px !important;
+        }
+        div[data-testid="stProgress"] > div > div {
+            background: #E6A817 !important;
+        }
+        div[data-testid="stAlert"] {
+            border-radius: 10px !important;
+            border-left-width: 4px !important;
+        }
+        div[data-baseweb="tab-list"] { background: transparent !important; }
+        div[data-baseweb="tab"] {
+            background: transparent !important;
+            color: #8B949E !important;
+        }
+        div[aria-selected="true"][data-baseweb="tab"] {
+            color: #E6A817 !important;
+            border-bottom: 2px solid #E6A817 !important;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -174,17 +316,19 @@ def hero():
     st.markdown(
         """
         <div class="hero-card">
-            <div class="section-label">Corporate disclosure monitoring</div>
-            <div class="big-title">Corporate Disclosure Crisis Radar</div>
-            <div class="subtle">
-                Detect disclosure-driven crisis signals in SEC filings, compare them with media tone,
-                and turn the output into a usable communication response plan.
+            <div class="section-label">📡 AC820 / BA870 · Boston University Questrom</div>
+            <div class="big-title">Corporate Disclosure<br>Crisis Radar</div>
+            <div class="subtle" style="max-width:600px;margin-top:.6rem;">
+                Detect PR crisis signals in S&amp;P 500 SEC filings using NLP.
+                Score disclosure language across 7 risk dimensions, compare against
+                real-time media tone, and map findings to SCCT communication strategy.
             </div>
-            <div style="margin-top:12px;">
+            <div style="margin-top:18px;display:flex;flex-wrap:wrap;gap:0;">
                 <span class="pill">SEC EDGAR</span>
-                <span class="pill">Yahoo Finance News</span>
                 <span class="pill">LM Dictionary</span>
-                <span class="pill">SCCT Guidance</span>
+                <span class="pill">Yahoo Finance</span>
+                <span class="pill">SCCT · Lerbinger</span>
+                <span class="pill">CAR Event Study</span>
             </div>
         </div>
         """,
@@ -193,58 +337,99 @@ def hero():
 
 
 def step_status(name: str, done: bool, active: bool) -> str:
-    if done:
-        icon = "✅"
-    elif active:
-        icon = "🔵"
-    else:
-        icon = "⬜"
-    return f"{icon} {name}"
+    cls = "wf-step done" if done else ("wf-step active" if active else "wf-step")
+    return f'<div class="{cls}"><div class="wf-dot"></div>{name}</div>'
 
 
 def sidebar_navigation():
     with st.sidebar:
-        st.markdown("## 📡 Crisis Radar")
-        st.caption("Cleaner decision workflow")
-        st.divider()
+        # Logo / brand header
+        st.markdown(
+            """
+            <div style="padding:16px 4px 8px;">
+                <div style="font-size:1.15rem;font-weight:800;color:#E6EDF3;
+                            letter-spacing:-.01em;font-family:'Inter',sans-serif;">
+                    📡 Crisis Radar
+                </div>
+                <div style="font-size:.75rem;color:#E6A817;font-weight:700;
+                            text-transform:uppercase;letter-spacing:.1em;margin-top:3px;">
+                    Disclosure Intelligence
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.markdown("<hr style='border-color:#21262D;margin:0 0 12px;'>",
+                    unsafe_allow_html=True)
 
-        has_setup = st.session_state.word_sets is not None
-        has_model = st.session_state.crisis_model is not None
+        has_setup   = st.session_state.word_sets    is not None
         has_results = bool(st.session_state.results)
+        cur         = st.session_state.active_step
 
-        st.caption("**Workflow**")
-        st.markdown(step_status("1. Setup", has_setup, st.session_state.active_step == "Setup"))
-        st.markdown(step_status("2. Analyze", has_results is False and st.session_state.active_step == "Analyze", st.session_state.active_step == "Analyze"))
-        st.markdown(step_status("3. Review", has_results, st.session_state.active_step == "Review"))
-        st.markdown(step_status("4. Action Plan", has_results, st.session_state.active_step == "Action Plan"))
-        st.divider()
+        st.markdown(
+            "<div style='font-size:.72rem;font-weight:700;color:#8B949E;"
+            "text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;'>"
+            "Workflow</div>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            step_status("1 · Setup",       has_setup,   cur == "Setup")   +
+            step_status("2 · Analyze",     has_results, cur == "Analyze") +
+            step_status("3 · Review",      has_results, cur == "Review")  +
+            step_status("4 · Action Plan", has_results, cur == "Action Plan"),
+            unsafe_allow_html=True,
+        )
+        st.markdown("<hr style='border-color:#21262D;margin:12px 0;'>",
+                    unsafe_allow_html=True)
 
+        st.markdown(
+            "<div style='font-size:.72rem;font-weight:700;color:#8B949E;"
+            "text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;'>"
+            "Navigate</div>",
+            unsafe_allow_html=True,
+        )
         _nav_options = ["Overview", "Setup", "Analyze", "Review", "Action Plan", "Methods"]
         page = st.radio(
-            "Go to",
+            "Navigate",
             _nav_options,
             index=_nav_options.index(st.session_state.nav_page)
                   if st.session_state.nav_page in _nav_options else 0,
+            label_visibility="collapsed",
         )
-        # Keep nav_page in sync with user's selection (no widget key conflict)
         st.session_state.nav_page = page
 
-        st.divider()
-        st.caption("**System status**")
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Dictionary", "Ready" if has_setup else "Missing")
-        c2.metric("Model", "Ready" if has_model else "Optional")
-        c3.metric("Results", "Yes" if has_results else "No")
+        st.markdown("<hr style='border-color:#21262D;margin:12px 0;'>",
+                    unsafe_allow_html=True)
+
+        # Status dots
+        lm_ok  = st.session_state.word_sets    is not None
+        ml_ok  = st.session_state.crisis_model is not None
+        res_ok = bool(st.session_state.results)
+        def _dot(ok): return (
+            "<span style='color:#3FB950;font-size:.8rem;'>●</span>" if ok
+            else "<span style='color:#30363D;font-size:.8rem;'>●</span>"
+        )
+        st.markdown(
+            f"<div style='font-size:.8rem;color:#8B949E;line-height:1.9;'>"
+            f"{_dot(lm_ok)}  LM Dictionary&nbsp;&nbsp;"
+            f"{_dot(ml_ok)}  Logit Model&nbsp;&nbsp;"
+            f"{_dot(res_ok)}  Results</div>",
+            unsafe_allow_html=True,
+        )
 
         return page
 
 
 def render_summary_banner(title: str, text: str, color: str):
+    # Soften solid colors for dark theme by adding translucency layer
     st.markdown(
         f"""
-        <div class="summary-banner" style="background:{color};">
-            <div style="font-size:1.05rem;font-weight:800;margin-bottom:4px;">{title}</div>
-            <div style="font-size:.95rem;opacity:.95;">{text}</div>
+        <div class="summary-banner"
+             style="background:linear-gradient(135deg,{color}22 0%,{color}15 100%);
+                    border:1px solid {color}55;border-left:4px solid {color};">
+            <div style="font-size:1rem;font-weight:800;margin-bottom:4px;
+                        color:#E6EDF3;">{title}</div>
+            <div style="font-size:.9rem;color:#C9D1D9;">{text}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -257,7 +442,7 @@ def render_metric_card(label: str, value: str, subtext: str = ""):
         <div class="kpi-card">
             <div class="metric-label">{label}</div>
             <div class="metric-value">{value}</div>
-            <div class="metric-sub">{subtext}</div>
+            {"<div class='metric-sub'>" + subtext + "</div>" if subtext else ""}
         </div>
         """,
         unsafe_allow_html=True,
