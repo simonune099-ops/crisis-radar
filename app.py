@@ -98,6 +98,14 @@ def inject_css():
             color: #8B949E !important; font-size: .82rem !important;
         }
 
+        /* ── Top header bar → dark ───────────────────────────── */
+        header[data-testid="stHeader"] {
+            background: #0D1117 !important;
+            border-bottom: 1px solid #21262D !important;
+        }
+        [data-testid="stToolbar"] { background: transparent !important; }
+        [data-testid="stDecoration"] { display: none !important; }
+
         /* ── Sidebar ─────────────────────────────────────────── */
         section[data-testid="stSidebar"] {
             background: #0D1117 !important;
@@ -108,45 +116,39 @@ def inject_css():
         section[data-testid="stSidebar"] h2,
         section[data-testid="stSidebar"] h3 { color: #E6EDF3 !important; }
 
-        /* sidebar radio → clean nav list */
-        div[data-testid="stRadio"] > label {
+        /* ── Sidebar radio → nav list ────────────────────────── */
+        /* Section label */
+        div[data-testid="stRadio"] > label p {
             color: #8B949E !important;
-            font-size: .82rem !important;
+            font-size: .72rem !important;
             font-weight: 700 !important;
             text-transform: uppercase !important;
-            letter-spacing: .06em !important;
-            margin-bottom: 4px !important;
+            letter-spacing: .08em !important;
         }
-        div[data-testid="stRadio"] > div {
-            gap: 1px !important;
-            flex-direction: column !important;
+        /* Each option row */
+        div[data-testid="stRadio"] div[role="radiogroup"] {
+            gap: 2px !important;
         }
-        div[data-testid="stRadio"] label {
+        div[data-testid="stRadio"] div[role="radiogroup"] label {
             border-radius: 6px !important;
-            padding: 7px 10px 7px 12px !important;
+            padding: 7px 10px 7px 10px !important;
             margin: 1px 0 !important;
-            transition: background .12s, color .12s !important;
-            font-size: .9rem !important;
-            font-weight: 500 !important;
-            color: #8B949E !important;
+            transition: background .12s !important;
             border-left: 3px solid transparent !important;
         }
-        div[data-testid="stRadio"] label:hover {
+        div[data-testid="stRadio"] div[role="radiogroup"] label:hover {
             background: #161B22 !important;
-            color: #E6EDF3 !important;
         }
-        div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked),
-        div[data-testid="stRadio"] label:has(input:checked) {
-            background: #1C2333 !important;
-            color: #E6A817 !important;
-            border-left: 3px solid #E6A817 !important;
-            font-weight: 700 !important;
+        /* Option text visible */
+        div[data-testid="stRadio"] div[role="radiogroup"] label p,
+        div[data-testid="stRadio"] div[role="radiogroup"] label span {
+            color: #C9D1D9 !important;
+            font-size: .9rem !important;
+            font-weight: 500 !important;
         }
-        /* hide radio circles */
-        div[data-testid="stRadio"] [data-testid="stMarkdownContainer"] { display:none !important; }
-        div[data-testid="stRadio"] span[data-testid="stRadioLabel"] { display: flex !important; }
-        div[data-testid="stRadio"] div[role="radiogroup"] > label > div:first-child {
-            display: none !important;
+        /* Radio circle: amber accent */
+        div[data-testid="stRadio"] div[role="radiogroup"] input[type="radio"] {
+            accent-color: #E6A817 !important;
         }
 
         /* ── Cards ───────────────────────────────────────────── */
@@ -291,9 +293,14 @@ def inject_css():
             border: 1px solid #21262D !important;
             border-radius: 10px !important;
         }
-        div[data-testid="stProgress"] > div > div {
-            background: #E6A817 !important;
+        /* Progress bar → tech blue */
+        div[data-testid="stProgress"] > div > div,
+        div[data-testid="stProgressBar"] > div,
+        [role="progressbar"] > div,
+        .stProgress > div > div > div {
+            background: #388BFD !important;
         }
+        div[data-testid="stProgress"] { background: #21262D !important; }
         div[data-testid="stAlert"] {
             border-radius: 10px !important;
             border-left-width: 4px !important;
@@ -367,7 +374,28 @@ def inject_css():
         .modebar { background: transparent !important; }
         .modebar-btn path { fill: #8B949E !important; }
 
-        /* Scrollbars */
+        /* ── Expander content text ───────────────────────────── */
+        div[data-testid="stExpander"] details {
+            background: #161B22 !important;
+        }
+        div[data-testid="stExpander"] details summary span,
+        div[data-testid="stExpander"] details summary p {
+            color: #C9D1D9 !important;
+        }
+        div[data-testid="stExpander"] details > div p,
+        div[data-testid="stExpander"] details > div li,
+        div[data-testid="stExpander"] details > div span,
+        div[data-testid="stExpander"] details > div label {
+            color: #C9D1D9 !important;
+        }
+        /* st.tabs content */
+        div[data-testid="stTabsContent"] p,
+        div[data-testid="stTabsContent"] li,
+        div[data-testid="stTabsContent"] span {
+            color: #C9D1D9 !important;
+        }
+
+        /* ── Scrollbars ──────────────────────────────────────── */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0D1117; }
         ::-webkit-scrollbar-thumb { background: #30363D; border-radius: 3px; }
@@ -415,7 +443,7 @@ def sidebar_navigation():
             <div style="padding:16px 4px 8px;">
                 <div style="font-size:1.15rem;font-weight:800;color:#E6EDF3;
                             letter-spacing:-.01em;font-family:'Inter',sans-serif;">
-                    📡 Crisis Radar
+                    Crisis Radar
                 </div>
                 <div style="font-size:.75rem;color:#E6A817;font-weight:700;
                             text-transform:uppercase;letter-spacing:.1em;margin-top:3px;">
@@ -757,6 +785,7 @@ def create_dimension_bar(scores: dict, color: str):
             marker_color=colors,
             text=[f"{v:.2f}" for v in vals],
             textposition="outside",
+            textfont=dict(color="#C9D1D9"),
         )
     )
     fig.update_layout(
@@ -976,7 +1005,7 @@ def page_overview():
             """
             <div class="app-card">
                 <div class="section-label">What the app does</div>
-                <div style="font-weight:800;font-size:1.1rem;margin-bottom:8px;">Find disclosure risk early</div>
+                <div style="font-weight:800;font-size:1.1rem;margin-bottom:8px;color:#E6EDF3;">Find disclosure risk early</div>
                 <ul class="small-list">
                     <li>Scores SEC language across multiple crisis dimensions</li>
                     <li>Compares disclosure tone against recent media headlines</li>
@@ -991,7 +1020,7 @@ def page_overview():
             """
             <div class="app-card">
                 <div class="section-label">Suggested workflow</div>
-                <div style="font-weight:800;font-size:1.1rem;margin-bottom:8px;">Use it in four steps</div>
+                <div style="font-weight:800;font-size:1.1rem;margin-bottom:8px;color:#E6EDF3;">Use it in four steps</div>
                 <ul class="small-list">
                     <li>Load the LM dictionary and optional model</li>
                     <li>Select a company and filing type</li>
@@ -1007,7 +1036,7 @@ def page_overview():
             """
             <div class="app-card">
                 <div class="section-label">Data sources</div>
-                <div style="font-weight:800;font-size:1.1rem;margin-bottom:8px;">Built around public inputs</div>
+                <div style="font-weight:800;font-size:1.1rem;margin-bottom:8px;color:#E6EDF3;">Built around public inputs</div>
                 <ul class="small-list">
                     <li>SEC EDGAR: 10-K, 10-Q, and 8-K filings</li>
                     <li>Yahoo Finance: price data and recent headlines</li>
@@ -1122,7 +1151,7 @@ def page_analyze():
             """
             <div class="app-card">
                 <div class="section-label">What happens</div>
-                <div style="font-weight:800;font-size:1.05rem;margin-bottom:8px;">This run includes</div>
+                <div style="font-weight:800;font-size:1.05rem;margin-bottom:8px;color:#E6EDF3;">This run includes</div>
                 <ul class="small-list">
                     <li>Latest filing retrieval from EDGAR</li>
                     <li>LM dictionary scoring across risk dimensions</li>
