@@ -75,9 +75,10 @@ RATING_COLORS = {
 def inject_css():
     st.markdown(
         """
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
         <style>
+        /* ── Google Fonts ────────────────────────────────────── */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
         /* ── Global ──────────────────────────────────────────── */
         html, body, [class*="css"] {
             font-family: 'Inter', sans-serif !important;
@@ -306,6 +307,71 @@ def inject_css():
             color: #E6A817 !important;
             border-bottom: 2px solid #E6A817 !important;
         }
+
+        /* ── Nuke all white/light backgrounds that leak through ─ */
+        .stApp > div, .main > div, .main .block-container > div,
+        div[data-testid="stVerticalBlock"], div[data-testid="stHorizontalBlock"] {
+            background: transparent !important;
+        }
+        /* DataFrame inner table */
+        div[data-testid="stDataFrame"] iframe { background: #161B22 !important; }
+        .dvn-scroller, .glideDataEditor { background: #161B22 !important; }
+
+        /* Plotly chart background → match dark theme */
+        div[data-testid="stPlotlyChart"] > div { background: transparent !important; }
+
+        /* Any remaining white card/surface containers from Streamlit internals */
+        div[data-testid="stForm"],
+        div[class*="stForm"] {
+            background: #161B22 !important;
+            border: 1px solid #21262D !important;
+            border-radius: 10px !important;
+        }
+
+        /* Labels for all inputs */
+        label[data-testid="stWidgetLabel"] p,
+        div[data-testid="stRadio"] > label p,
+        .stSelectbox label p, .stTextInput label p,
+        .stNumberInput label p, .stTextArea label p {
+            color: #8B949E !important;
+            font-size: .8rem !important;
+            font-weight: 600 !important;
+        }
+
+        /* Selectbox dropdown menu */
+        ul[data-testid="stSelectboxVirtualDropdown"],
+        li[role="option"] {
+            background: #1C2333 !important;
+            color: #E6EDF3 !important;
+        }
+        li[role="option"]:hover { background: #21262D !important; }
+
+        /* Info / warning / error / success boxes */
+        div[data-testid="stAlert"] > div {
+            background: transparent !important;
+        }
+        div[data-testid="stAlert"][data-baseweb="notification"] {
+            background: #161B22 !important;
+        }
+
+        /* Spinner text */
+        div[data-testid="stSpinner"] p { color: #8B949E !important; }
+
+        /* st.success / st.info / st.warning / st.error text */
+        div[data-testid="stAlert"] p { color: #E6EDF3 !important; }
+
+        /* Checkbox */
+        label[data-testid="stCheckbox"] span { color: #C9D1D9 !important; }
+
+        /* Plotly modebar (toolbar in charts) */
+        .modebar { background: transparent !important; }
+        .modebar-btn path { fill: #8B949E !important; }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0D1117; }
+        ::-webkit-scrollbar-thumb { background: #30363D; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #8B949E; }
         </style>
         """,
         unsafe_allow_html=True,
@@ -655,7 +721,14 @@ def create_radar(scores: dict, color: str):
         )
     )
     fig.update_layout(
-        polar=dict(radialaxis=dict(visible=True, range=[0, max(vals) * 1.35 or 1])),
+        polar=dict(
+            bgcolor="#161B22",
+            radialaxis=dict(visible=True, range=[0, max(vals) * 1.35 or 1],
+                            gridcolor="#30363D", tickfont=dict(color="#8B949E")),
+            angularaxis=dict(tickfont=dict(color="#C9D1D9"), gridcolor="#30363D"),
+        ),
+        paper_bgcolor="#0D1117",
+        font=dict(color="#C9D1D9"),
         showlegend=False,
         height=350,
         margin=dict(l=20, r=20, t=20, b=20),
@@ -688,9 +761,12 @@ def create_dimension_bar(scores: dict, color: str):
     )
     fig.update_layout(
         height=330,
-        plot_bgcolor="#FFFFFF",
-        paper_bgcolor="#FFFFFF",
-        xaxis_title="Words per 1,000",
+        plot_bgcolor="#161B22",
+        paper_bgcolor="#0D1117",
+        font=dict(color="#C9D1D9"),
+        xaxis=dict(title="Words per 1,000", color="#8B949E",
+                   gridcolor="#21262D", tickfont=dict(color="#8B949E")),
+        yaxis=dict(color="#C9D1D9", tickfont=dict(color="#C9D1D9")),
         margin=dict(l=20, r=50, t=20, b=30),
     )
     return fig
@@ -708,11 +784,15 @@ def create_media_comparison(scores: dict, media_scores: dict, color: str):
     fig.update_layout(
         height=320,
         barmode="group",
-        plot_bgcolor="#FFFFFF",
-        paper_bgcolor="#FFFFFF",
-        yaxis_title="Words per 1,000",
+        plot_bgcolor="#161B22",
+        paper_bgcolor="#0D1117",
+        font=dict(color="#C9D1D9"),
+        xaxis=dict(color="#8B949E", gridcolor="#21262D", tickfont=dict(color="#C9D1D9")),
+        yaxis=dict(title="Words per 1,000", color="#8B949E",
+                   gridcolor="#21262D", tickfont=dict(color="#8B949E")),
+        legend=dict(orientation="h", y=-0.2, font=dict(color="#C9D1D9"),
+                    bgcolor="rgba(0,0,0,0)"),
         margin=dict(l=20, r=20, t=20, b=40),
-        legend=dict(orientation="h", y=-0.2),
     )
     return fig
 
@@ -804,13 +884,18 @@ def create_event_study(ticker: str, filed_date: str, color: str, rating: str, fo
     )
     fig.update_layout(
         height=350,
-        plot_bgcolor="#FFFFFF",
-        paper_bgcolor="#FFFFFF",
-        xaxis_title="Date",
-        yaxis_title="Cumulative abnormal return (%)",
+        plot_bgcolor="#161B22",
+        paper_bgcolor="#0D1117",
+        font=dict(color="#C9D1D9"),
+        xaxis=dict(title="Date", color="#8B949E", gridcolor="#21262D",
+                   tickfont=dict(color="#8B949E")),
+        yaxis=dict(title="Cumulative abnormal return (%)", color="#8B949E",
+                   gridcolor="#21262D", tickfont=dict(color="#8B949E"),
+                   zerolinecolor="#30363D"),
         hovermode="x unified",
         margin=dict(l=20, r=20, t=20, b=40),
-        legend=dict(orientation="h", y=-0.2),
+        legend=dict(orientation="h", y=-0.2, font=dict(color="#C9D1D9"),
+                    bgcolor="rgba(0,0,0,0)"),
     )
     return fig, evt_df, beta_hat
 
@@ -835,10 +920,14 @@ def create_peer_comparison(peers: list):
     fig.update_layout(
         barmode="group",
         height=360,
-        plot_bgcolor="#FFFFFF",
-        paper_bgcolor="#FFFFFF",
-        yaxis_title="Score",
-        legend=dict(orientation="h", y=-0.22),
+        plot_bgcolor="#161B22",
+        paper_bgcolor="#0D1117",
+        font=dict(color="#C9D1D9"),
+        xaxis=dict(color="#C9D1D9", tickfont=dict(color="#C9D1D9"), gridcolor="#21262D"),
+        yaxis=dict(title="Score", color="#8B949E", gridcolor="#21262D",
+                   tickfont=dict(color="#8B949E")),
+        legend=dict(orientation="h", y=-0.22, font=dict(color="#C9D1D9"),
+                    bgcolor="rgba(0,0,0,0)"),
         margin=dict(l=20, r=20, t=20, b=50),
     )
     return fig
@@ -1258,7 +1347,10 @@ def page_review():
                         textinfo="label+percent",
                     )
                 )
-                pie.update_layout(height=300, margin=dict(l=10, r=10, t=20, b=10), showlegend=False)
+                pie.update_layout(
+                    height=300, margin=dict(l=10, r=10, t=20, b=10), showlegend=False,
+                    paper_bgcolor="#0D1117", font=dict(color="#C9D1D9"),
+                )
                 st.plotly_chart(pie, use_container_width=True)
             with right:
                 st.plotly_chart(
